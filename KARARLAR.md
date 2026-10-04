@@ -54,3 +54,8 @@ Sonuç: 12.810 satır, her yıl 428-605 satır, 9.850 satırda HEDEF_PTS dolu; a
 Durum: Delta yöntemi ve EDA tanımlarının ayrıntıları.
 Karar: (1) Çiftler: ardışık iki sezonda da GP ≥ 20 ve MIN ≥ 10 (t+1 değerlendirme filtresiyle tutarlı). (2) Yaş eğrisi: t yaşına göre ortalama (PTS_{t+1} − PTS_t), ≥ 30 gözlemli yaşlar; tepe yaş = kümülatif seviyenin en yüksek olduğu yaş. (3) Ortalamaya dönüş: PTS(t)−PTS(t−1) ile PTS(t+1)−PTS(t) arasındaki eğim. (4) Hayatta kalma: ertesi sezon veride olmayan oyuncuların yaş grubuna göre oranı ve PTS'si. EDA tüm yılları kullanır ama yalnızca betimseldir; modele/baseline'a giren yaş eğrisi `baseline.yas_egrisi_hesapla` ile yalnız eğitimden hesaplanacak.
 Gerekçe: CLAUDE.md §3.1-3.4. Sonuç: tepe yaş 27; r(PTS)=0.865, r(MIN)=0.758, r(PTS_36)=0.857; dönüş eğimi −0.086.
+
+## K-011 · Faz 3 · 2026-10-04
+Durum: Lag özniteliklerinde ardışıklık ve PTS_L2 tanımı; takım değişimi ölçütü.
+Karar: (1) Lag'ler `groupby.shift` yerine (PLAYER_ID, SEZON_YIL−k) anahtarıyla birleştirilir: PTS_L1 yalnızca t−1 sezonundan, PTS_L2 yalnızca t−2 sezonundan gelir (t−1 eksik olsa bile t−2 varsa kullanılır; Marcel mantığıyla tutarlı). (2) TAKIM_DEGISTI, varsa `TEAM_ID` ile karşılaştırılır (SEA→OKC, NJN→BKN gibi taşınmalar değişim sayılmaz), t−1 sezonu yoksa NaN. (3) `oznitelikler.csv` filtrelenmemiş tüm satırları içerir; GP/MIN ve hedef filtreleri `bolme`'de uygulanır. (4) Sızıntı testine ek olarak birden fazla kesme yılında aynı kontrol eklendi; sızdıran bir sütunun (`shift(-1)`) testi kırdığı geçici mutasyonla doğrulandı.
+Gerekçe: İskelet §4 ardışık sezon kontrolü; birleştirme tabanlı lag sezon boşluklarında yanlış değer üretemez.

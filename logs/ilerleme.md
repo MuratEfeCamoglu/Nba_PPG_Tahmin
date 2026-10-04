@@ -8,3 +8,6 @@ Yapılan: veri_topla.py (önbellek + 5 deneme üstel geri çekilme, timeout 60),
 
 ## 2026-10-04 — Faz 2, döngü 1
 Yapılan: eda.py (delta yaş eğrisi, ortalamaya dönüş, ardışık korelasyon, hayatta kalma tablosu), test_eda.py; tepe_yas KeyError düzeltildi (kümülatif fonksiyon içinde hesaplanıyor) · Kapılar: make eda ✅ · make test 26 passed · make test-veri 13 passed · lint ✅ · K10 ✅ · tepe yaş 27 ✅ · Sonraki: Faz 3 öznitelik.
+
+## 2026-10-04 — Faz 3, döngü 1
+Yapılan: oznitelik.py (26 öznitelik), test_oznitelik.py (7), test_sizinti.py (2) · Kapılar: make oznitelik ✅ · test_sizinti+test_oznitelik 9 passed · make test 35 passed · make test-veri 13 passed · lint ✅ (1 uzun satır düzeltildi) · K5 ✅ · Sonraki: Faz 4.
