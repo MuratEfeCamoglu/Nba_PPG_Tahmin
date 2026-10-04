@@ -122,3 +122,8 @@ Gerekçe: En küçük hatayı tüm oyunculardan seçmek PTS'si hiç değişmeyen
 ## K-023 · Faz 6 (ek) · 2026-10-04
 Durum: Kullanıcı "Doğru tahminler" bölümünün PDF'e de eklenmesini istedi.
 Karar: `src/pdf_rapor.py` → `isabet_sayfasi`: özet sayfasından sonra (sayfa 2) en isabetli 10 doğrulama tahmini tablosu + dört genel oran (naifi yenme %72,1, 1 sayı altı 12/315, genel %28,7, MAE 2,24) ve "seçilmiş örnekler" uyarısı. Veri K-022'deki kaynaklardan (`hata_analizi.md`, `metrikler.json`) okunur; tablo ayrıştırma `src/web_sitesi.py`'deki `md_tablo`/`aciklama_sadelestir` ile ortak. PDF 11 → 12 sayfa; bayt düzeyinde deterministik kaldı.
+
+## K-024 · Faz 6 (ek) · 2026-10-04
+Durum: Kullanıcı siteyi GitHub + Vercel ile yayına almak istedi; Vercel `requirements.txt` yüzünden projeyi Python uygulaması sanıp "No python entrypoint found" hatası verdi.
+Karar: Kök dizine `vercel.json` eklendi: framework yok, kurulum ve derleme komutu boş, çıktı dizini `site`. Vercel yalnızca önceden üretilmiş `site/index.html`'i statik olarak sunar; Python pipeline'ı Vercel'de çalışmaz (veri ve model yerelde `make site` ile üretilip commit'lenir).
+Gerekçe: Yayınlama kullanıcının kararı ve eylemi (İskelet §7.2'de ajan için kapsam dışı); ajan yalnızca yapılandırma dosyasını hazırladı, push ve Vercel bağlantısı kullanıcıda.
