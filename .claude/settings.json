@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)", "Bash(python:*)", "Bash(python3:*)", "Bash(.venv/bin/python:*)",
+      "Bash(.venv/bin/pip:*)", "Bash(pytest:*)", "Bash(ruff:*)",
+      "Bash(git init)", "Bash(git add:*)", "Bash(git commit:*)", "Bash(git status)",
+      "Bash(git diff:*)", "Bash(git log:*)", "Bash(ls:*)", "Bash(mkdir:*)", "Bash(cat:*)",
+      "Edit", "Write"
+    ],
+    "deny": ["Bash(git push:*)", "Bash(sudo:*)", "Bash(rm -rf:*)"]
+  }
+}

@@ -1,0 +1,32 @@
+veri:
+  baslangic_yil: 2000
+  bitis_yil: 2025
+  bekleme_sn: 1.0
+  max_deneme: 5          # üstel geri çekilme: 2, 4, 8, 16, 32 sn
+  timeout_sn: 60         # Agent.md §8: nba_api istek zaman aşımı
+filtre:
+  min_gp: 20
+  min_dakika: 10
+bolme:
+  egitim_son_yil: 2019
+  dogrulama_yillari: [2020, 2022]   # kapalı aralık
+  test_yillari: [2023, 2024]        # hedefleri 2024-25 ve 2025-26
+  tahmin_yil: 2025                  # → 2026-27 tahmini
+marcel:
+  agirliklar: [5, 4, 3]
+model:
+  random_state: 42
+  ridge_alpha: [0.1, 1, 10, 100]
+  rf: {n_estimators: 500, min_samples_leaf: [5, 20]}
+  lgbm:
+    num_leaves: [15, 31, 63]
+    learning_rate: [0.03, 0.1]
+    n_estimators: 3000
+    early_stopping: 100
+aralik: {alt: 0.1, ust: 0.9}
+yollar:
+  ham: data/raw
+  islenmis: data/processed
+  modeller: models
+  raporlar: reports
+  sekiller: reports/figures
