@@ -8,6 +8,7 @@ karşılaştırması ve ilk 20 oyuncunun aralık grafiği; sonraki sayfalar tüm
 from __future__ import annotations
 
 import logging
+import textwrap
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,7 @@ from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
 from src.ayarlar import ayarlari_yukle, loglama_kur, yol_al  # noqa: E402
 from src.degerlendir import metrikleri_oku  # noqa: E402
 from src.kadro import guncel_takim_ekle, son_kadro  # noqa: E402
+from src.web_sitesi import aciklama_sadelestir, md_tablo  # noqa: E402
 
 LOG = logging.getLogger(__name__)
 
@@ -168,21 +170,110 @@ def tablo_sayfasi(
     return fig
 
 
+def isabet_satirlari(hata_md: str) -> list[list[Any]]:
+    """`hata_analizi.md`'deki "En isabetli 10 tahmin" tablosunu satır listesine çevirir."""
+    return [[r[0], r[1], int(r[2]), float(r[3]), float(r[4]), float(r[5]),
+             aciklama_sadelestir(r[8])]
+            for r in md_tablo(hata_md, "## En isabetli 10 tahmin")]
+
+
+def isabet_sayfasi(
+    satirlar: list[list[Any]], ozet: dict[str, float], dog_mae: float, sayfa: int, toplam: int
+) -> plt.Figure:
+    """Doğrulamadaki en isabetli 10 tahmini ve genel isabet oranlarını bir sayfaya çizer."""
+    fig = plt.figure(figsize=A4)
+    fig.text(0.5, 0.955, "Doğru Tahminler — Model Nerede Tam İsabet Etti?",
+             ha="center", fontsize=14, weight="bold")
+    giris = (
+        f"Doğrulama sezonlarında (2020-22) sayısı bir sezondan ötekine en az 3 sayı değişen "
+        f"{int(ozet['n_degisen'])} oyuncu vardı. \"Geçen sezonla aynı\" diyen naif tahmin bu "
+        "oyuncuların hepsinde en az 3 sayı yanılırdı. Aşağıda modelin bu değişimi en doğru "
+        "öngördüğü 10 örnek var. Açıklamalar yalnızca tahmin anında bilinen bilgilere "
+        "(yaş, ağırlıklı ortalama, maç sayısı) dayanır."
+    )
+    fig.text(0.07, 0.925, textwrap.fill(giris, 105), fontsize=8.5, va="top", linespacing=1.5)
+
+    basliklar = ["Oyuncu", "Sezon (t)", "Yaş", "PTS (t)", "Tahmin", "Gerçek", "Model\nhatası",
+                 "Naif\nhata", "Model neyi gördü?"]
+    genislik = [0.15, 0.075, 0.045, 0.06, 0.06, 0.06, 0.065, 0.06, 0.385]
+    hucreler, satir_say = [], []
+    for r in satirlar:
+        aciklama = textwrap.fill(r[6], 52)
+        hucreler.append([r[0], r[1], str(r[2]), _sayi(r[3])[:-1], _sayi(r[4])[:-1],
+                         _sayi(r[5])[:-1], f"{r[4] - r[5]:+.1f}".replace(".", ","),
+                         f"{r[3] - r[5]:+.1f}".replace(".", ","), aciklama])
+        satir_say.append(aciklama.count("\n") + 1)
+    birimler = [2] + satir_say
+    ax = fig.add_axes([0.04, 0.27, 0.92, 0.57])
+    ax.axis("off")
+    tablo = ax.table(cellText=hucreler, colLabels=basliklar, colWidths=genislik,
+                     loc="upper center", cellLoc="center")
+    tablo.auto_set_font_size(False)
+    tablo.set_fontsize(7.5)
+    birim = 1 / sum(birimler)
+    for (satir, sutun), c in tablo.get_celld().items():
+        c.set_height(birimler[satir] * birim)
+        c.set_edgecolor("#dddddd")
+        if satir == 0:
+            c.set_facecolor("#1f3b6f")
+            c.get_text().set_color("white")
+            c.get_text().set_weight("bold")
+        elif satir % 2 == 0:
+            c.set_facecolor("#f2f5fa")
+        if satir > 0 and sutun in (0, 8):
+            c.get_text().set_horizontalalignment("left")
+            c.PAD = 0.02
+        if satir > 0 and sutun == 6:
+            c.get_text().set_weight("bold")
+
+    kartlar = [
+        (f"%{ozet['naifi_yenen_oran'] * 100:.1f}".replace(".", ","),
+         "sayısı değişen oyuncularda\nnaiften daha az yanıldı"),
+        (str(int(ozet["n_bir_alti"])),
+         f"değişen {int(ozet['n_degisen'])} oyuncudan\n1 sayıdan az hatayla"),
+        (f"%{ozet['genel_bir_alti_oran'] * 100:.1f}".replace(".", ","),
+         "tüm doğrulama tahminlerinde\nhata 1 sayının altında"),
+        (_sayi(dog_mae), "sayı ortalama hata (MAE);\ngenel başarının ölçüsü"),
+    ]
+    for i, (deger, aciklama) in enumerate(kartlar):
+        x = 0.07 + i * 0.225
+        fig.text(x, 0.215, deger, fontsize=17, weight="bold", color="#1f3b6f")
+        fig.text(x, 0.200, aciklama, fontsize=7.5, va="top", color="#444444", linespacing=1.4)
+    fig.text(0.07, 0.115, textwrap.fill(
+        "Bu 10 örnek seçilmiş en iyi durumlardır ve modelin tipik başarısını göstermez. "
+        "Tipik başarıyı ortalama hata ve hata analizi birlikte anlatır. Test sezonları bu "
+        "analizde kullanılmamıştır.", 110), fontsize=7.5, color="#555555", va="top")
+    _altbilgi(fig, sayfa, toplam)
+    return fig
+
+
 def pdf_olustur(
-    tahmin: pd.DataFrame, metrik: dict[str, Any], yol: Path, kadro_notu: str = ""
+    tahmin: pd.DataFrame, metrik: dict[str, Any], yol: Path, kadro_notu: str = "",
+    isabetler: list[list[Any]] | None = None,
 ) -> int:
-    """Tahmin PDF'ini yazar ve sayfa sayısını döndürür."""
+    """Tahmin PDF'ini yazar ve sayfa sayısını döndürür.
+
+    `isabetler` verilirse (ve metriklerde `isabet_dogrulama` varsa) özetten sonra
+    "Doğru tahminler" sayfası eklenir.
+    """
     tablo_sayfa = -(-len(tahmin) // MAKS_SATIR)
     adet = -(-len(tahmin) // tablo_sayfa)
-    toplam = 1 + tablo_sayfa
+    isabet_var = bool(isabetler) and "isabet_dogrulama" in metrik
+    ek = 1 if isabet_var else 0
+    toplam = 1 + ek + tablo_sayfa
     # CreationDate yazılmaz: aynı girdiden bayt düzeyinde aynı PDF üretilir.
     with PdfPages(yol, metadata={"Title": "2026-27 NBA Sayı Tahminleri",
                                  "CreationDate": None}) as pdf:
         fig = ozet_sayfasi(tahmin, metrik, toplam, kadro_notu)
         pdf.savefig(fig)
         plt.close(fig)
+        if isabet_var:
+            dog_mae = metrik["dogrulama"][metrik["secilen_model"]]["MAE"]
+            fig = isabet_sayfasi(isabetler, metrik["isabet_dogrulama"], dog_mae, 2, toplam)
+            pdf.savefig(fig)
+            plt.close(fig)
         for k in range(tablo_sayfa):
-            fig = tablo_sayfasi(tahmin, k * adet, adet, k + 2, toplam)
+            fig = tablo_sayfasi(tahmin, k * adet, adet, k + 2 + ek, toplam)
             pdf.savefig(fig)
             plt.close(fig)
     return toplam
@@ -197,7 +288,10 @@ def main() -> None:
                   "tahmine dahil değildir." if kadro else "")
     tahmin = tahmin.sort_values("TAHMIN", ascending=False).reset_index(drop=True)
     yol = pdf_yolu()
-    sayfa = pdf_olustur(tahmin, metrikleri_oku(), yol, kadro_notu)
+    hata_yolu = yol_al("raporlar") / "hata_analizi.md"
+    isabetler = (isabet_satirlari(hata_yolu.read_text(encoding="utf-8"))
+                 if hata_yolu.exists() else None)
+    sayfa = pdf_olustur(tahmin, metrikleri_oku(), yol, kadro_notu, isabetler)
     LOG.info("PDF yazıldı: %s (%d sayfa, %d oyuncu)", yol, sayfa, len(tahmin))
 
 

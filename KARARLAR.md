@@ -118,3 +118,7 @@ Alternatifler: Takım değişikliğini modele katmak (reddedildi: kapsam dışı
 Durum: Kullanıcı, sitede en büyük hataların yanında verilerle uyuşan (isabetli) tahmin örneklerinin de "Doğru tahminler" bölümünde gösterilmesini istedi.
 Karar: `src/yorumla.py` → `en_isabetli_tahminler`: doğrulama kümesinde (2020-22) naif tahminin en az 3 sayı yanıldığı, yani sayısı gerçekten değişen 315 oyuncu-sezon arasından model hatası en küçük 10 satır; `isabet_aciklamasi` yalnızca t ve öncesi bilgiden (yaş, PTS_AGIRLIKLI, GP) neden yazar. Tablo `hata_analizi.md`'ye, özet (`isabet_dogrulama`: değişen 315, 1 sayı altı 12, naifi yenme %72,1, genel 1 sayı altı %28,7) `metrikler.json`'a yazılır; site bunları okur.
 Gerekçe: En küçük hatayı tüm oyunculardan seçmek PTS'si hiç değişmeyen yedek oyuncuları getirir ve naif tahminin de isabet ettiği durumları "başarı" gibi gösterirdi. Seçilmiş örneklerin yanıltmaması için sitede genel MAE ve oranlar birlikte verilir. Test kümesi kullanılmadı (İskelet §7.5).
+
+## K-023 · Faz 6 (ek) · 2026-10-04
+Durum: Kullanıcı "Doğru tahminler" bölümünün PDF'e de eklenmesini istedi.
+Karar: `src/pdf_rapor.py` → `isabet_sayfasi`: özet sayfasından sonra (sayfa 2) en isabetli 10 doğrulama tahmini tablosu + dört genel oran (naifi yenme %72,1, 1 sayı altı 12/315, genel %28,7, MAE 2,24) ve "seçilmiş örnekler" uyarısı. Veri K-022'deki kaynaklardan (`hata_analizi.md`, `metrikler.json`) okunur; tablo ayrıştırma `src/web_sitesi.py`'deki `md_tablo`/`aciklama_sadelestir` ile ortak. PDF 11 → 12 sayfa; bayt düzeyinde deterministik kaldı.

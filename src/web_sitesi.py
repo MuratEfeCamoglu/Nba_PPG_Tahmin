@@ -66,7 +66,7 @@ def _sayi_ya_da_bos(x: str) -> float | None:
     return None if x in ("—", "") else float(x.replace("+", ""))
 
 
-def _aciklama_sadelestir(metin: str) -> str:
+def aciklama_sadelestir(metin: str) -> str:
     """Açıklamalardaki t / t+1 gösterimini sadeleştirir, ondalık noktayı virgül yapar."""
     metin = re.sub(r"(\d)\.(\d)", r"\1,\2", metin)
     return (metin.replace("t+1'de beklenenden", "Ertesi sezon beklenenden")
@@ -100,10 +100,10 @@ def site_verisi(tahmin: pd.DataFrame, metrik: dict[str, Any], hata_md: str) -> d
            for r in md_tablo(hata_md, "## Yaş kısmi bağımlılığı")]
     shap = [[r[0], float(r[1])] for r in md_tablo(hata_md, "## SHAP")]
     hatalar = [[r[0], r[1], int(r[2]), float(r[3]), float(r[4]), float(r[5]),
-                _aciklama_sadelestir(r[7])]
+                aciklama_sadelestir(r[7])]
                for r in md_tablo(hata_md, "## En büyük 10 hata")]
     isabetler = [[r[0], r[1], int(r[2]), float(r[3]), float(r[4]), float(r[5]),
-                  _aciklama_sadelestir(r[8])]
+                  aciklama_sadelestir(r[8])]
                  for r in md_tablo(hata_md, "## En isabetli 10 tahmin")]
     return {"tahmin": satirlar, "modeller": modeller, "yas": yas, "shap": shap,
             "hatalar": hatalar, "isabetler": isabetler}
