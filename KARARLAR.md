@@ -38,3 +38,14 @@ Gerekçe: CLAUDE.md §5 "sabitler koda gömülmez".
 Durum: `data/raw/` önbelleği git'e eklenmeli mi?
 Karar: Evet, `data/raw/` ve `data/processed/` depoya dahil (gitignore'da değil).
 Gerekçe: İskelet §1 .gitignore içeriğini `.venv/, __pycache__/, models/*.joblib` olarak tanımlıyor; ham önbelleğin depoda olması API erişimi olmadan tekrar üretimi mümkün kılar.
+
+## K-008 · Faz 1 · 2026-10-04
+Durum: Veri toplama ve hedef üretimi iki modülde; ara dosya ve önbellek adlandırma.
+Karar: Önbellek `data/raw/{Base|Advanced}_{yil}.csv` (API'nin ham çıktısı, tüm sütunlar). `src.veri_topla` birleşik tabloyu `data/processed/birlesik_ham.csv` ara dosyasına yazar, `src.hedef` onu okuyup `oyuncu_sezon.csv` üretir (ara dosya yoksa önbellekten yeniden kurar). `make veri` ikisini sırayla çalıştırır. `veri_topla` uzun çekimler için `--bas/--bit` ile parça parça çalıştırılabilir.
+Gerekçe: Her modül `python -m` ile bağımsız çalışır; önbellek API'yi yalnızca bir kez çağırır.
+
+## K-009 · Faz 1 · 2026-10-04
+Durum: LeagueDashPlayerStats takas edilen oyuncuları zaten sezon başına tek satırda (son takım) veriyor; Advanced'ten hangi sütunlar alınacak?
+Karar: Yine de İskelet §8'e uygun GP ağırlıklı `takaslari_birlestir` güvenlik adımı uygulandı (gerçek veride tekrar bulunmadı). Advanced'ten `USG_PCT, TS_PCT, EFG_PCT, AST_PCT, REB_PCT, PIE, PACE, OFF_RATING, DEF_RATING` alındı; eşleşmeyen oyuncu Base satırıyla kalır.
+Gerekçe: Sözleşme benzersiz anahtar şart koşuyor; ek advanced sütunlar ileride EDA/öznitelik için kullanılabilir, modelin öznitelik listesi yine İskelet §4'tür.
+Sonuç: 12.810 satır, her yıl 428-605 satır, 9.850 satırda HEDEF_PTS dolu; advanced sütunlarında eksik yok.
