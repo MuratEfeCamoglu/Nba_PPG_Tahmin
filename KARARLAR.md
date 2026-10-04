@@ -49,3 +49,8 @@ Durum: LeagueDashPlayerStats takas edilen oyuncuları zaten sezon başına tek s
 Karar: Yine de İskelet §8'e uygun GP ağırlıklı `takaslari_birlestir` güvenlik adımı uygulandı (gerçek veride tekrar bulunmadı). Advanced'ten `USG_PCT, TS_PCT, EFG_PCT, AST_PCT, REB_PCT, PIE, PACE, OFF_RATING, DEF_RATING` alındı; eşleşmeyen oyuncu Base satırıyla kalır.
 Gerekçe: Sözleşme benzersiz anahtar şart koşuyor; ek advanced sütunlar ileride EDA/öznitelik için kullanılabilir, modelin öznitelik listesi yine İskelet §4'tür.
 Sonuç: 12.810 satır, her yıl 428-605 satır, 9.850 satırda HEDEF_PTS dolu; advanced sütunlarında eksik yok.
+
+## K-010 · Faz 2 · 2026-10-04
+Durum: Delta yöntemi ve EDA tanımlarının ayrıntıları.
+Karar: (1) Çiftler: ardışık iki sezonda da GP ≥ 20 ve MIN ≥ 10 (t+1 değerlendirme filtresiyle tutarlı). (2) Yaş eğrisi: t yaşına göre ortalama (PTS_{t+1} − PTS_t), ≥ 30 gözlemli yaşlar; tepe yaş = kümülatif seviyenin en yüksek olduğu yaş. (3) Ortalamaya dönüş: PTS(t)−PTS(t−1) ile PTS(t+1)−PTS(t) arasındaki eğim. (4) Hayatta kalma: ertesi sezon veride olmayan oyuncuların yaş grubuna göre oranı ve PTS'si. EDA tüm yılları kullanır ama yalnızca betimseldir; modele/baseline'a giren yaş eğrisi `baseline.yas_egrisi_hesapla` ile yalnız eğitimden hesaplanacak.
+Gerekçe: CLAUDE.md §3.1-3.4. Sonuç: tepe yaş 27; r(PTS)=0.865, r(MIN)=0.758, r(PTS_36)=0.857; dönüş eğimi −0.086.

@@ -5,3 +5,6 @@ Yapılan: klasör yapısı, git init, Python 3.12 venv, requirements (sabit sür
 
 ## 2026-10-04 — Faz 1, döngü 1
 Yapılan: veri_topla.py (önbellek + 5 deneme üstel geri çekilme, timeout 60), hedef.py, test_hedef/test_veri_topla/test_veri; 52 önbellek dosyası çekildi (API hatası yok) · Kapılar: K1 ✅ make veri exit 0 · K2 ✅ make test 22 passed, make test-veri 13 passed · K3 ✅ · K4 ✅ · K10 ✅ (oyuncu_sezon.csv 12.810 satır, 26 yıl) · Sonraki: Faz 2 EDA.
+
+## 2026-10-04 — Faz 2, döngü 1
+Yapılan: eda.py (delta yaş eğrisi, ortalamaya dönüş, ardışık korelasyon, hayatta kalma tablosu), test_eda.py; tepe_yas KeyError düzeltildi (kümülatif fonksiyon içinde hesaplanıyor) · Kapılar: make eda ✅ · make test 26 passed · make test-veri 13 passed · lint ✅ · K10 ✅ · tepe yaş 27 ✅ · Sonraki: Faz 3 öznitelik.
