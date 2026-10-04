@@ -12,7 +12,7 @@ PY := .venv/bin/python
 SISTEM_PY := python3
 endif
 
-.PHONY: kur veri eda oznitelik egit test-degerlendir yorumla tahmin pdf test test-veri test-tam lint hepsi
+.PHONY: kur veri eda oznitelik egit test-degerlendir yorumla tahmin pdf kadro site test test-veri test-tam lint hepsi
 
 kur:
 	test -e $(PY) || $(SISTEM_PY) -m venv .venv
@@ -43,6 +43,13 @@ tahmin:
 pdf:
 	$(PY) -m src.pdf_rapor
 
+# Ag erisimi gerektirir (nba_api); gunluk tarihli kadro goruntusu data/raw altina yazilir.
+kadro:
+	$(PY) -m src.kadro
+
+site:
+	$(PY) -m src.web_sitesi
+
 test:
 	$(PY) -m pytest -m "not veri and not rapor"
 
@@ -55,4 +62,4 @@ test-tam:
 lint:
 	$(PY) -m ruff check src tests app mini_make.py
 
-hepsi: veri eda oznitelik egit test-degerlendir yorumla tahmin pdf
+hepsi: veri eda oznitelik egit test-degerlendir yorumla tahmin pdf site

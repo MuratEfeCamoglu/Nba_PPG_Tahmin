@@ -1,0 +1,627 @@
+<title>2026-27 Sayı Projeksiyonları</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Düzen: sol hizalı tek sütun (maks. 1120px), yapışkan bölüm menüsü; tahmin tablosu sayfanın merkezi, yöntem bölümleri onu açıklar. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --ink: #142133;
+  --muted: #586579;
+  --line: #dbe1ea;
+  --accent: #c9531a;      /* top turuncusu: tahmin noktası, vurgu */
+  --court: #2a5b9a;       /* parke mavisi: aralıklar, birincil seriler */
+  --band: #c7d6ec;        /* %80 aralık bandı */
+  --soft: #eaeef5;
+  --good: #2d7a4b;
+  --bad: #b23a3a;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1520; --surface: #172030; --ink: #e5eaf2; --muted: #98a5b8; --line: #2a3547;
+    --accent: #f08046; --court: #7aa9e6; --band: #2f4566; --soft: #1d2839;
+    --good: #5fbf85; --bad: #ec7b7b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1520; --surface: #172030; --ink: #e5eaf2; --muted: #98a5b8; --line: #2a3547;
+  --accent: #f08046; --court: #7aa9e6; --band: #2f4566; --soft: #1d2839;
+  --good: #5fbf85; --bad: #ec7b7b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body);
+  font-size: 15px; line-height: 1.6; padding: 0 16px;
+}
+.kap { max-width: 1120px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.1; margin: 0; }
+h1 { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; letter-spacing: 0.005em; }
+h2 { font-size: 2rem; font-weight: 700; }
+h3 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.01em; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--court); }
+.num { font-family: var(--f-data); font-variant-numeric: tabular-nums; }
+.etiket {
+  font-family: var(--f-display); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.12em; font-size: 0.85rem; color: var(--muted);
+}
+
+/* Menü */
+nav.menu {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(6px); border-bottom: 1px solid var(--line);
+  margin: 0 -16px; padding: 0 16px;
+}
+nav.menu .kap { display: flex; gap: 22px; align-items: center; overflow-x: auto; padding-block: 10px; }
+nav.menu a {
+  font-family: var(--f-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 0.9rem; color: var(--muted); text-decoration: none; white-space: nowrap;
+}
+nav.menu a:hover, nav.menu a:focus-visible { color: var(--ink); }
+nav.menu .logo { color: var(--ink); margin-right: auto; }
+
+/* Giriş */
+header.giris { padding-block: 48px 36px; display: grid; gap: 18px; }
+header.giris .ust { color: var(--accent); }
+header.giris p.ozet { font-size: 1.08rem; color: var(--muted); }
+.serit {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
+  border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); margin-top: 10px;
+}
+.serit > div { padding: 14px 16px 14px 0; display: grid; gap: 2px; }
+.serit > div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.serit .deger { font-family: var(--f-display); font-size: 2.2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.serit .acik { font-size: 0.82rem; color: var(--muted); }
+
+section { padding-block: 44px; border-top: 1px solid var(--line); display: grid; gap: 20px; }
+section > header { display: grid; gap: 8px; }
+section > header p { color: var(--muted); }
+
+/* Tahmin tablosu */
+.araclar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.araclar input, .araclar select {
+  font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; min-width: 0;
+}
+.araclar input { flex: 1 1 240px; }
+.araclar input:focus-visible, .araclar select:focus-visible, button:focus-visible, th button:focus-visible {
+  outline: 2px solid var(--court); outline-offset: 2px;
+}
+.guncellik { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.guncellik > div { padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.guncellik > div + div { border-left: 1px solid var(--line); }
+.guncellik b { font-weight: 600; }
+.guncellik .not { font-size: 0.82rem; }
+.durum-nokta { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--good); margin-right: 6px; vertical-align: 1px; }
+.eski { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.rozet { display: inline-block; font-family: var(--f-display); font-weight: 600; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; }
+.rozet.degisti { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.rozet.yok { background: var(--soft); color: var(--muted); }
+.araclar .sayac { color: var(--muted); font-size: 0.88rem; margin-left: auto; }
+.lejant { display: flex; flex-wrap: wrap; gap: 18px; font-size: 0.85rem; color: var(--muted); align-items: center; }
+.lejant span { display: inline-flex; align-items: center; gap: 6px; }
+.lj-band { width: 26px; height: 8px; background: var(--band); border-radius: 2px; display: inline-block; }
+.lj-nokta { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; display: inline-block; }
+.lj-cizgi { width: 2px; height: 14px; background: var(--ink); display: inline-block; }
+
+.tablo-kap {
+  overflow: auto; max-height: 640px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px;
+}
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { padding: 8px 12px; text-align: right; white-space: nowrap; }
+th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: left; }
+thead th {
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+  border-bottom: 2px solid var(--ink); font-weight: 600;
+}
+thead th button {
+  font: inherit; font-family: var(--f-display); text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.85rem; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer;
+}
+thead th button[aria-sort] { color: var(--ink); }
+thead th button[aria-sort="descending"]::after { content: " ↓"; }
+thead th button[aria-sort="ascending"]::after { content: " ↑"; }
+tbody tr { border-bottom: 1px solid var(--line); }
+tbody tr:hover { background: var(--soft); }
+td.sira { color: var(--muted); }
+td.oyuncu { font-weight: 600; }
+td.tahmin { font-weight: 600; color: var(--ink); }
+td.aralik-hucre { padding-block: 4px; }
+svg.aralik { display: block; }
+.bos { padding: 28px; text-align: center; color: var(--muted); }
+
+/* Yöntem */
+.adimlar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; counter-reset: adim; border-top: 2px solid var(--ink); }
+.adimlar li { counter-increment: adim; padding: 16px 18px 18px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.adimlar li::before { content: counter(adim, decimal-leading-zero); font-family: var(--f-display); font-weight: 700; font-size: 1.4rem; color: var(--accent); }
+.adimlar li p { font-size: 0.92rem; color: var(--muted); }
+code { font-family: var(--f-data); font-size: 0.86em; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+
+.izgara2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.izgara2 > * { min-width: 0; display: grid; gap: 12px; align-content: start; }
+.kutu { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.not { font-size: 0.86rem; color: var(--muted); }
+
+.kucuk-tablo { overflow-x: auto; }
+.kucuk-tablo table { font-size: 0.88rem; }
+.kucuk-tablo th { font-family: var(--f-display); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.82rem; color: var(--muted); border-bottom: 1px solid var(--ink); }
+.kucuk-tablo td { border-bottom: 1px solid var(--line); }
+.kucuk-tablo td.sol, .kucuk-tablo th.sol { text-align: left; }
+.kucuk-tablo td.acikla { white-space: normal; min-width: 260px; text-align: left; color: var(--muted); }
+.secili td { font-weight: 700; }
+.pozitif { color: var(--good); }
+.negatif { color: var(--bad); }
+
+/* Grafikler */
+svg.grafik { width: 100%; height: auto; display: block; overflow: visible; }
+.g-eksen { stroke: var(--line); stroke-width: 1; }
+.g-sifir { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.g-yazi { fill: var(--muted); font-family: var(--f-data); font-size: 11px; }
+.g-yazi-ink { fill: var(--ink); font-family: var(--f-body); font-size: 12px; }
+.g-court { fill: var(--court); }
+.g-accent { fill: var(--accent); }
+.g-band { fill: var(--band); }
+.g-cizgi-court { fill: none; stroke: var(--court); stroke-width: 2.5; }
+.g-cizgi-accent { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 6 4; }
+
+.zaman { display: grid; gap: 8px; }
+.zaman-serit { display: grid; grid-template-columns: repeat(26, minmax(0, 1fr)); gap: 2px; }
+.zaman-serit div { height: 28px; border-radius: 2px; }
+.z-egitim { background: var(--court); }
+.z-dogrulama { background: var(--band); }
+.z-test { background: var(--accent); }
+.z-tahmin { background: var(--ink); }
+.zaman-yil { display: flex; justify-content: space-between; font-family: var(--f-data); font-size: 11px; color: var(--muted); }
+
+footer { padding-block: 32px 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.86rem; display: grid; gap: 6px; }
+
+@media (max-width: 760px) {
+  .serit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .serit > div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .serit > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .izgara2 { grid-template-columns: minmax(0, 1fr); }
+  .gizle-dar { display: none; }
+  .guncellik { grid-template-columns: minmax(0, 1fr); }
+  .guncellik > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  nav.menu .logo { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  tbody tr { transition: background-color 120ms ease; }
+}
+</style>
+
+<nav class="menu" aria-label="Bölümler">
+  <div class="kap">
+    <a class="logo" href="#ust">NBA · 2026-27</a>
+    <a href="#tahminler">Tahminler</a>
+    <a href="#yontem">Yöntem</a>
+    <a href="#sonuclar">Sonuçlar</a>
+    <a href="#bulgular">Bulgular</a>
+    <a href="#hatalar">Hata analizi</a>
+    <a href="#sinirlar">Sınırlamalar</a>
+  </div>
+</nav>
+
+<div class="kap" id="ust">
+  <header class="giris">
+    <span class="etiket ust">Normal sezon · maç başı sayı (PPG) projeksiyonu</span>
+    <h1>2026-27 sezonunda kim kaç sayı atacak?</h1>
+    <p class="ozet">2025-26 sezonunda en az 20 maç ve maç başı 10 dakika oynayan __OYUNCU__ oyuncunun gelecek sezon maç başı sayı ortalaması tahmini. Her tahminin yanında, oyuncunun gerçek değerinin %80 olasılıkla düşmesi beklenen aralık var. Model 2000-01'den bu yana 26 sezonluk veriyle, geleceği görmeyecek şekilde eğitildi.</p>
+    <div class="serit">
+      <div><span class="etiket">Oyuncu</span><span class="deger">__OYUNCU__</span><span class="acik">2026-27 için tahmin edildi</span></div>
+      <div><span class="etiket">Test hatası</span><span class="deger">±__TEST_MAE__</span><span class="acik">sayı, ortalama mutlak hata (2024-25 ve 2025-26)</span></div>
+      <div><span class="etiket">Naife göre</span><span class="deger">−__KAZANC__%</span><span class="acik">"geçen sezonla aynı" tahminine göre daha az hata</span></div>
+      <div><span class="etiket">Aralık kapsaması</span><span class="deger">%__KAPSAMA__</span><span class="acik">doğrulamada gerçek değer %80 aralığın içinde kaldı</span></div>
+    </div>
+    <div class="guncellik" aria-label="Verilerin güncelliği">
+      <div><span class="etiket"><i class="durum-nokta"></i>İstatistikler</span><b>2025-26 normal sezonu, tamamlandı</b><span class="not">Oyuncu başına en fazla __MAKS_GP__ maç. 2000-01'den beri __SATIR__ oyuncu-sezon satırı.</span></div>
+      <div><span class="etiket"><i class="durum-nokta"></i>Takımlar</span><b>__KADRO_SEZON__ kadroları, __KADRO_TARIH__</b><span class="not">NBA API kadro listesinden. __N_DEGISTI__ oyuncu takım değiştirdi, __N_YOK__ oyuncu şu an hiçbir kadroda değil.</span></div>
+      <div><span class="etiket"><i class="durum-nokta"></i>Model</span><b>Hedefleri 2025-26'ya kadar olan veriyle eğitildi</b><span class="not">Takım değişikliği tahmine dahil değil; tahmin oyuncunun kendi istatistiklerine dayanır.</span></div>
+    </div>
+  </header>
+
+  <section id="tahminler">
+    <header>
+      <span class="etiket">Tahminler</span>
+      <h2>Tüm oyuncular</h2>
+      <p>Bir oyuncu veya takım arayın, sütun başlıklarına tıklayarak sıralayın. Satırdaki şerit 0-40 sayı ölçeğinde aralığı gösterir.</p>
+    </header>
+    <div class="araclar">
+      <label class="gizli" for="ara" hidden>Oyuncu ara</label>
+      <input id="ara" type="search" placeholder="Oyuncu ara (ör. Wembanyama)" autocomplete="off" aria-label="Oyuncu ara">
+      <select id="takim" aria-label="Takım filtresi"><option value="">Tüm takımlar (güncel)</option></select>
+      <select id="durum" aria-label="Kadro durumu filtresi">
+        <option value="">Tüm oyuncular</option>
+        <option value="degisti">Takım değiştirenler</option>
+        <option value="yok">Kadrosu olmayanlar</option>
+      </select>
+      <span class="sayac" id="sayac"></span>
+    </div>
+    <div class="lejant">
+      <span><i class="lj-band"></i>%80 tahmin aralığı</span>
+      <span><i class="lj-nokta"></i>2026-27 tahmini</span>
+      <span><i class="lj-cizgi"></i>2025-26 gerçek ortalaması</span>
+    </div>
+    <div class="tablo-kap">
+      <table id="tahmin-tablo">
+        <thead><tr>
+          <th><button type="button" data-k="s">#</button></th>
+          <th><button type="button" data-k="o">Oyuncu</button></th>
+          <th><button type="button" data-k="t">Takım (güncel)</button></th>
+          <th class="gizle-dar"><button type="button" data-k="a">Yaş</button></th>
+          <th><button type="button" data-k="p">2025-26</button></th>
+          <th><button type="button" data-k="y" aria-sort="descending">Tahmin</button></th>
+          <th class="gizle-dar"><button type="button" data-k="w">Aralık</button></th>
+          <th><span class="etiket">0 — 40 sayı</span></th>
+        </tr></thead>
+        <tbody id="govde"></tbody>
+      </table>
+      <div class="bos" id="bos" hidden>Aramanızla eşleşen oyuncu yok. Yazımı kontrol edin veya takım filtresini kaldırın.</div>
+    </div>
+    <p class="not">Takım sütunu __KADRO_TARIH__ tarihli __KADRO_SEZON__ kadrolarını gösterir; üstü çizili kısaltma oyuncunun 2025-26'daki takımıdır. "Kadrosuz" oyuncular şu an bir takımla anlaşmamış (serbest oyuncu) veya ligden ayrılmış olabilir. Yaş, 2025-26 sezonundaki yaştır. Tahmin, oyuncunun 2026-27'de anlamlı süre alması (en az 20 maç) koşuluna dayanır; sakatlık veya rol değişikliği öngörülmez.</p>
+  </section>
+
+  <section id="yontem">
+    <header>
+      <span class="etiket">Yöntem</span>
+      <h2>Tahminler nasıl üretildi?</h2>
+      <p>Uçtan uca tek komutla (<code>make hepsi</code>) yeniden üretilebilen bir Python pipeline'ı. Adımlar sırayla çalışır; her biri bir öncekinin çıktısını kullanır.</p>
+    </header>
+    <ol class="adimlar">
+      <li><h3>Veri toplama</h3><p>Resmi NBA istatistik API'si (<code>nba_api</code>, LeagueDashPlayerStats) üzerinden 2000-01 → 2025-26 arasındaki 26 sezonun temel ve ileri istatistikleri, maç başı olarak çekildi: __SATIR__ oyuncu-sezon satırı. Aynı sezonda takas edilen oyuncular maç sayısıyla ağırlıklandırılarak tek satıra indirildi.</p></li>
+      <li><h3>Hedef değişken</h3><p>Her satır için hedef, aynı oyuncunun <em>bir sonraki ardışık</em> sezondaki maç başı sayısı. Oyuncu bir sezon atladıysa hedef boş bırakılır. Değerlendirmede iki sezonda da en az 20 maç ve 10 dakika oynayanlar kullanıldı.</p></li>
+      <li><h3>Öznitelikler</h3><p>Yalnızca o sezon ve öncesine ait 26 öznitelik: ham istatistikler, 36 dakika başına hızlar, son iki sezonun değerleri, 5-4-3 ağırlıklı sayı ortalaması, trendler, yaş, kariyer uzunluğu ve takım değişikliği. Gelecekten bilgi sızmadığı bir "kesme testi"yle doğrulandı.</p></li>
+      <li><h3>Zamansal bölme</h3><p>Rastgele bölme yerine yıllara göre bölme: model geçmişle eğitilip gelecekte sınanır. Rastgele bölme, aynı oyuncunun komşu sezonlarını eğitim ve testte birlikte bulundurup başarıyı şişirirdi.</p></li>
+      <li><h3>Baseline'lar</h3><p><strong>Naif:</strong> "geçen sezon kaç attıysa o kadar atar." <strong>Marcel:</strong> son üç sezonun 5-4-3 ağırlıklı ortalaması + eğitim verisinden hesaplanan yaş düzeltmesi. Bir modelin işe yaraması için bunları yenmesi gerekir.</p></li>
+      <li><h3>Modeller ve seçim</h3><p>Ridge regresyon, RandomForest ve LightGBM, sabit bir hiperparametre ızgarasında denendi. Seçim yalnızca doğrulama hatasıyla yapıldı; farkı 0,02 sayıdan küçük modeller arasında en basiti tercih edildi: <strong>Ridge</strong>.</p></li>
+      <li><h3>Tek seferlik test</h3><p>Model seçimi kayda geçirildikten sonra test sezonları bir kez kullanıldı. Test sonucuna bakıp modele geri dönülmedi; aynı seti ikinci bir modelle sınamayı kod düzeyinde engelleyen bir koruma var.</p></li>
+      <li><h3>2026-27 tahmini ve aralık</h3><p>Ridge, 2000-2024'ün tüm etiketli verisiyle yeniden eğitildi ve 2025-26 satırlarına uygulandı. %80 aralık, LightGBM quantile regresyonu (%10 ve %90 yüzdelikleri) ile üretildi.</p></li>
+    </ol>
+
+    <div class="kutu">
+      <span class="etiket">Zamansal bölme · sezon başlangıç yılı</span>
+      <div class="zaman">
+        <div class="zaman-serit" id="zaman" aria-label="2000-2019 eğitim, 2020-2022 doğrulama, 2023-2024 test, 2025 tahmin"></div>
+        <div class="zaman-yil"><span>2000-01</span><span>2010-11</span><span>2019-20</span><span>2025-26</span></div>
+        <div class="lejant">
+          <span><i class="lj-band" style="background:var(--court)"></i>Eğitim 2000-2019 · __N_EGITIM__ satır</span>
+          <span><i class="lj-band"></i>Doğrulama 2020-2022 · __N_DOGRULAMA__</span>
+          <span><i class="lj-band" style="background:var(--accent)"></i>Test 2023-2024 · __N_TEST__</span>
+          <span><i class="lj-band" style="background:var(--ink)"></i>Tahmin 2025 → 2026-27 · __OYUNCU__</span>
+        </div>
+      </div>
+      <p class="not">Her satır t sezonunun istatistikleriyle t+1 sezonunun sayısını eşler. Örneğin test kümesindeki 2024 satırlarının hedefi, 2025-26 sezonunun gerçek sayılarıdır.</p>
+    </div>
+
+    <div class="kucuk-tablo kutu">
+      <span class="etiket">Öznitelik listesi (hepsi t sezonu ve öncesi)</span>
+      <table>
+        <thead><tr><th class="sol">Grup</th><th class="sol">Sütunlar</th><th class="sol">Neden</th></tr></thead>
+        <tbody>
+          <tr><td class="sol">Ham (t)</td><td class="sol num">AGE, GP, MIN, PTS, FGA, FTA, AST, REB, TOV, USG_PCT, TS_PCT</td><td class="acikla">Oyuncunun son sezondaki rolü ve verimliliği.</td></tr>
+          <tr><td class="sol">Hız (t)</td><td class="sol num">PTS_36, FGA_36, FTA_36, FG3A_ORAN</td><td class="acikla">36 dakika başına skor üretimi dakikadan daha istikrarlıdır.</td></tr>
+          <tr><td class="sol">Geçmiş</td><td class="sol num">PTS_L1, PTS_L2, MIN_L1, PTS_36_L1, GP_L1</td><td class="acikla">Önceki iki sezon; yalnızca sezonlar ardışıksa doldurulur.</td></tr>
+          <tr><td class="sol">Ağırlıklı</td><td class="sol num">PTS_AGIRLIKLI = (5·PTS + 4·L1 + 3·L2) / Σw</td><td class="acikla">Tek olağanüstü sezonun etkisini yumuşatır (ortalamaya dönüş).</td></tr>
+          <tr><td class="sol">Trend</td><td class="sol num">PTS_TREND, MIN_TREND</td><td class="acikla">Yükselişte mi, düşüşte mi?</td></tr>
+          <tr><td class="sol">Yaş / kariyer</td><td class="sol num">AGE_KARE, GECMIS_SEZON</td><td class="acikla">Yaş eğrisi tepe yapıp düştüğü için ikinci dereceden terim.</td></tr>
+          <tr><td class="sol">Bağlam</td><td class="sol num">TAKIM_DEGISTI</td><td class="acikla">t−1 → t arasında takım değişikliği (gelecek takımı kullanılmaz).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="sonuclar">
+    <header>
+      <span class="etiket">Sonuçlar</span>
+      <h2>Model karşılaştırması</h2>
+      <p>Ortalama mutlak hata (MAE): tahminin gerçek maç başı sayıdan ortalama kaç sayı saptığı. Düşük olan daha iyi. Test sütunu yalnızca seçilen model ve iki baseline için hesaplandı.</p>
+    </header>
+    <div class="izgara2">
+      <div class="kutu">
+        <span class="etiket">MAE · doğrulama (2020-22) ve test (2023-24)</span>
+        <svg class="grafik" id="g-model" role="img" aria-label="Model hata karşılaştırma grafiği"></svg>
+        <div class="lejant"><span><i class="lj-band" style="background:var(--court)"></i>Doğrulama</span><span><i class="lj-band" style="background:var(--accent)"></i>Test</span></div>
+      </div>
+      <div class="kucuk-tablo kutu">
+        <span class="etiket">Tüm metrikler</span>
+        <table id="t-model"></table>
+        <p class="not">LightGBM doğrulamada Ridge'den yalnızca 0,011 sayı iyiydi. Bu fark eşik değerin (0,02) altında olduğu için daha basit ve yorumlanabilir Ridge seçildi.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="bulgular">
+    <header>
+      <span class="etiket">Keşifsel analiz</span>
+      <h2>Veride ne gördük?</h2>
+    </header>
+    <div class="izgara2">
+      <div class="kutu">
+        <h3>Yaş eğrisi: tepe 27 yaş</h3>
+        <p class="not">Bir yaştan bir sonrakine ortalama sayı değişimi (delta yöntemi). 27 yaşına kadar artış, sonra düşüş. Modelin öğrendiği yaş etkisi aynı biçimi izliyor.</p>
+        <svg class="grafik" id="g-yas" role="img" aria-label="Yaşa göre ortalama sayı değişimi grafiği"></svg>
+        <div class="lejant"><span><i class="lj-band" style="background:var(--court);height:3px"></i>Veri (EDA, delta)</span><span><i class="lj-band" style="background:var(--accent);height:3px"></i>Model (kısmi bağımlılık)</span></div>
+      </div>
+      <div class="kutu">
+        <h3>Hangi bilgiler tahmini yönlendiriyor?</h3>
+        <p class="not">Ortalama |SHAP| değeri: her özniteliğin tahmini ortalama kaç sayı değiştirdiği (doğrulama kümesi).</p>
+        <svg class="grafik" id="g-shap" role="img" aria-label="Öznitelik önem grafiği"></svg>
+      </div>
+    </div>
+    <div class="izgara2">
+      <div class="kucuk-tablo kutu">
+        <h3>Sezondan sezona istikrar</h3>
+        <table>
+          <thead><tr><th class="sol">Ölçü</th><th>Korelasyon (t, t+1)</th></tr></thead>
+          <tbody>
+            <tr><td class="sol">Maç başı sayı (PTS)</td><td class="num">0,865</td></tr>
+            <tr><td class="sol">Dakika (MIN)</td><td class="num">0,758</td></tr>
+            <tr><td class="sol">36 dakika başına sayı</td><td class="num">0,857</td></tr>
+          </tbody>
+        </table>
+        <p class="not">Dakika (rol, rotasyon, sakatlık) en oynak bileşen. Skor üretme hızı daha istikrarlı.</p>
+      </div>
+      <div class="kutu">
+        <h3>Ortalamaya dönüş ve hayatta kalma</h3>
+        <p class="not">Bir sezonda sayısını çok artıran oyuncu ertesi sezon kısmen geri düşüyor (eğim −0,086). Bu yüzden tek sezon yerine ağırlıklı ortalama kullanıldı.</p>
+        <p class="not">Ligden çıkan oyuncular veride görünmüyor: 34 yaş üstünde oyuncuların %26'sı ertesi sezon yok ve çıkanların ortalaması 5,5 sayı. Bu nedenle yaşlı oyuncularda gözlenen düşüş gerçekte olduğundan hafif görünür.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="hatalar">
+    <header>
+      <span class="etiket">Hata analizi</span>
+      <h2>Model nerede yanılıyor?</h2>
+      <p>Doğrulama sezonlarındaki (2020-22) en büyük 10 hata. Neredeyse hepsi, modelin tahmin anında göremeyeceği rol değişikliklerinden geliyor: takas, dakika artışı veya düşüşü, sakatlık.</p>
+    </header>
+    <div class="kucuk-tablo kutu">
+      <table id="t-hata"></table>
+    </div>
+    <div class="izgara2">
+      <div class="kucuk-tablo kutu">
+        <span class="etiket">Hata · yaş grubuna göre</span>
+        <table>
+          <thead><tr><th class="sol">Yaş</th><th>N</th><th>MAE</th><th>Ort. sapma</th></tr></thead>
+          <tbody>
+            <tr><td class="sol">≤23</td><td class="num">303</td><td class="num">2,61</td><td class="num">+0,71</td></tr>
+            <tr><td class="sol">24-27</td><td class="num">342</td><td class="num">2,21</td><td class="num">+0,46</td></tr>
+            <tr><td class="sol">28-30</td><td class="num">187</td><td class="num">1,94</td><td class="num">+0,38</td></tr>
+            <tr><td class="sol">31-33</td><td class="num">114</td><td class="num">2,34</td><td class="num">+0,44</td></tr>
+            <tr><td class="sol">34+</td><td class="num">63</td><td class="num">1,42</td><td class="num">+0,05</td></tr>
+          </tbody>
+        </table>
+        <p class="not">Gençlerin geleceği daha belirsiz; hata en çok onlarda.</p>
+      </div>
+      <div class="kucuk-tablo kutu">
+        <span class="etiket">Hata · geçmişe göre</span>
+        <table>
+          <thead><tr><th class="sol">Durum</th><th>N</th><th>MAE</th><th>Ort. sapma</th></tr></thead>
+          <tbody>
+            <tr><td class="sol">Aynı takım</td><td class="num">606</td><td class="num">2,23</td><td class="num">+0,28</td></tr>
+            <tr><td class="sol">Takım değişti</td><td class="num">281</td><td class="num">2,07</td><td class="num">+0,73</td></tr>
+            <tr><td class="sol">Önceki sezonu yok (çaylak vb.)</td><td class="num">122</td><td class="num">2,70</td><td class="num">+1,02</td></tr>
+          </tbody>
+        </table>
+        <p class="not">Model doğrulama yıllarında ortalama +0,49 sayı fazla tahmin etti; sapma en çok geçmişi kısa oyuncularda.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="sinirlar">
+    <header>
+      <span class="etiket">Sınırlamalar</span>
+      <h2>Bu tahminleri okurken</h2>
+    </header>
+    <ul class="adimlar" style="counter-reset:none">
+      <li style="counter-increment:none"><h3>Koşullu tahmin</h3><p>Model "oyuncu anlamlı süre alırsa kaç sayı atar?" sorusunu cevaplar. Sezonu sakatlıkla kaçıracak bir oyuncu için tahmin anlamsızdır.</p></li>
+      <li style="counter-increment:none"><h3>Rol değişikliği görünmez</h3><p>Yaz transferleri, koç değişikliği veya takım arkadaşlarının ayrılması özniteliklerde yok. En büyük hatalar buradan gelir.</p></li>
+      <li style="counter-increment:none"><h3>Çaylaklar yok</h3><p>2025-26'da NBA'de oynamamış oyuncular (2026 draft sınıfı) tahmin kümesinde bulunmaz.</p></li>
+      <li style="counter-increment:none"><h3>Aralık biraz dar</h3><p>%80 hedeflenen aralık doğrulamada gerçek değerlerin %__KAPSAMA__'ini kapsadı. Yaklaşık beş oyuncudan biri aralığın dışında kalacaktır.</p></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Veri: NBA istatistik API'si (<code>nba_api</code>), normal sezon, 2000-01 → 2025-26. Model: Ridge regresyon (α = 0,1), aralık: LightGBM quantile.</span>
+    <span>Tahminler Nisan 2027'de gerçek 2026-27 sonuçlarıyla karşılaştırılacak. Bu bir portföy projesidir; bahis amaçlı değildir.</span>
+  </footer>
+</div>
+
+<script>
+const VERI = __VERI__;
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const tr = (x, d = 2) => x.toFixed(d).replace(".", ",");
+  const el = (ad, ozellik = {}, ebeveyn) => {
+    const e = document.createElementNS(NS, ad);
+    for (const k in ozellik) e.setAttribute(k, ozellik[k]);
+    if (ebeveyn) ebeveyn.appendChild(e);
+    return e;
+  };
+  const yazi = (ebeveyn, x, y, metin, sinif, ek = {}) => {
+    const t = el("text", Object.assign({ x, y, class: sinif }, ek), ebeveyn);
+    t.textContent = metin;
+    return t;
+  };
+  const normal = s => s.toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g, "i");
+
+  /* ---- Tahmin tablosu ---- */
+  const oyuncular = VERI.tahmin.map((r, i) => ({
+    s: i + 1, o: r[0], e: r[1], a: r[2], p: r[3], y: r[4], l: r[5], u: r[6], w: r[6] - r[5], g: r[7], d: r[8],
+    t: r[7] || r[1], n: normal(r[0])
+  }));
+  const takimSec = document.getElementById("takim");
+  const durumSec = document.getElementById("durum");
+  [...new Set(oyuncular.filter(r => r.g).map(r => r.g))].sort().forEach(t => {
+    const o = document.createElement("option"); o.value = t; o.textContent = t; takimSec.appendChild(o);
+  });
+  let sirala = { k: "y", yon: -1 };
+  const govde = document.getElementById("govde");
+  const ara = document.getElementById("ara");
+  const W = 170, H = 22, OLC = x => 6 + (Math.min(Math.max(x, 0), 40) / 40) * (W - 12);
+
+  function seritSvg(r) {
+    const s = el("svg", { class: "aralik", width: W, height: H, viewBox: `0 0 ${W} ${H}`, "aria-hidden": "true" });
+    el("line", { x1: 6, x2: W - 6, y1: H / 2, y2: H / 2, stroke: "var(--line)", "stroke-width": 1 }, s);
+    el("rect", { x: OLC(r.l), y: H / 2 - 4, width: Math.max(OLC(r.u) - OLC(r.l), 2), height: 8, rx: 2, fill: "var(--band)" }, s);
+    el("line", { x1: OLC(r.p), x2: OLC(r.p), y1: 3, y2: H - 3, stroke: "var(--ink)", "stroke-width": 2 }, s);
+    el("circle", { cx: OLC(r.y), cy: H / 2, r: 4.5, fill: "var(--accent)", stroke: "var(--surface)", "stroke-width": 1.5 }, s);
+    return s;
+  }
+  function takimHucre(r) {
+    if (r.d === "degisti") return `<span class="eski">${r.e}</span> → <b>${r.g}</b><span class="rozet degisti">yeni</span>`;
+    if (r.d === "yok") return `<span class="eski">${r.e}</span><span class="rozet yok">kadrosuz</span>`;
+    return r.t;
+  }
+  function ciz() {
+    const q = normal(ara.value.trim());
+    const tk = takimSec.value;
+    const dr = durumSec.value;
+    const liste = oyuncular.filter(r => (!q || r.n.includes(q)) && (!tk || r.g === tk) && (!dr || r.d === dr));
+    const { k, yon } = sirala;
+    liste.sort((a, b) => (typeof a[k] === "string" ? a[k].localeCompare(b[k], "tr") : a[k] - b[k]) * yon);
+    govde.textContent = "";
+    const parca = document.createDocumentFragment();
+    for (const r of liste) {
+      const satir = document.createElement("tr");
+      satir.innerHTML =
+        `<td class="sira num">${r.s}</td><td class="oyuncu"></td><td>${takimHucre(r)}</td>` +
+        `<td class="num gizle-dar">${r.a}</td><td class="num">${tr(r.p, 1)}</td>` +
+        `<td class="num tahmin">${tr(r.y, 1)}</td><td class="num gizle-dar">${tr(r.l, 1)} – ${tr(r.u, 1)}</td><td class="aralik-hucre"></td>`;
+      satir.children[1].textContent = r.o;
+      const kadroNot = r.d === "degisti" ? ` · 2025-26: ${r.e} → şimdi ${r.g}` : r.d === "yok" ? ` · 2025-26: ${r.e}, şu an kadrosuz` : "";
+      satir.title = `${r.o}${kadroNot} · tahmin ${tr(r.y, 1)}, %80 aralık ${tr(r.l, 1)}–${tr(r.u, 1)}, 2025-26: ${tr(r.p, 1)}`;
+      satir.lastChild.appendChild(seritSvg(r));
+      parca.appendChild(satir);
+    }
+    govde.appendChild(parca);
+    document.getElementById("bos").hidden = liste.length > 0;
+    document.getElementById("sayac").textContent = `${liste.length} / ${oyuncular.length} oyuncu`;
+  }
+  document.querySelectorAll("thead th button").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.k;
+    sirala = sirala.k === k ? { k, yon: -sirala.yon } : { k, yon: (k === "o" || k === "t" || k === "s") ? 1 : -1 };
+    document.querySelectorAll("thead th button").forEach(x => x.removeAttribute("aria-sort"));
+    b.setAttribute("aria-sort", sirala.yon === 1 ? "ascending" : "descending");
+    ciz();
+  }));
+  ara.addEventListener("input", ciz);
+  takimSec.addEventListener("change", ciz);
+  durumSec.addEventListener("change", ciz);
+  ciz();
+
+  /* ---- Zaman şeridi ---- */
+  const zaman = document.getElementById("zaman");
+  for (let y = 2000; y <= 2025; y++) {
+    const d = document.createElement("div");
+    d.className = y <= 2019 ? "z-egitim" : y <= 2022 ? "z-dogrulama" : y <= 2024 ? "z-test" : "z-tahmin";
+    d.title = `${y}-${String(y + 1).slice(2)}`;
+    zaman.appendChild(d);
+  }
+
+  /* ---- Model grafiği ---- */
+  (function () {
+    const m = VERI.modeller;
+    const svg = document.getElementById("g-model");
+    const GW = 480, sol = 104, sag = 40, satirH = 44, ust = 8, alt = 26;
+    const GH = ust + m.length * satirH + alt;
+    svg.setAttribute("viewBox", `0 0 ${GW} ${GH}`);
+    const min = 2.0, max = 2.7;
+    const X = v => sol + ((v - min) / (max - min)) * (GW - sol - sag);
+    for (let t = 2.0; t <= 2.701; t += 0.1) {
+      el("line", { x1: X(t), x2: X(t), y1: ust, y2: GH - alt, class: "g-eksen" }, svg);
+      yazi(svg, X(t), GH - 8, tr(t, 1), "g-yazi", { "text-anchor": "middle" });
+    }
+    m.forEach((r, i) => {
+      const y0 = ust + i * satirH + 6;
+      yazi(svg, sol - 10, y0 + 18, r.ad, "g-yazi-ink", { "text-anchor": "end", "font-weight": r.secili ? 700 : 400 });
+      el("rect", { x: X(min), y: y0, width: X(r.dog) - X(min), height: 14, class: "g-court", rx: 2 }, svg);
+      yazi(svg, X(r.dog) + 5, y0 + 11, tr(r.dog), "g-yazi");
+      if (r.test != null) {
+        el("rect", { x: X(min), y: y0 + 17, width: X(r.test) - X(min), height: 14, class: "g-accent", rx: 2 }, svg);
+        yazi(svg, X(r.test) + 5, y0 + 28, tr(r.test), "g-yazi");
+      } else {
+        yazi(svg, X(min) + 4, y0 + 28, "test edilmedi", "g-yazi");
+      }
+    });
+    const tab = document.getElementById("t-model");
+    tab.innerHTML = "<thead><tr><th class='sol'>Model</th><th>Doğr. MAE</th><th>Doğr. R²</th><th>Test MAE</th><th>Test R²</th></tr></thead>";
+    const tb = document.createElement("tbody");
+    m.forEach(r => {
+      const s = document.createElement("tr");
+      if (r.secili) s.className = "secili";
+      s.innerHTML = `<td class="sol">${r.ad}${r.secili ? " ✓" : ""}</td><td class="num">${tr(r.dog, 3)}</td><td class="num">${tr(r.dogR2, 3)}</td>` +
+        `<td class="num">${r.test != null ? tr(r.test, 3) : "—"}</td><td class="num">${r.testR2 != null ? tr(r.testR2, 3) : "—"}</td>`;
+      tb.appendChild(s);
+    });
+    tab.appendChild(tb);
+  })();
+
+  /* ---- Yaş grafiği ---- */
+  (function () {
+    const v = VERI.yas;
+    const svg = document.getElementById("g-yas");
+    const GW = 480, GH = 280, sol = 38, sag = 12, ust = 12, alt = 30;
+    svg.setAttribute("viewBox", `0 0 ${GW} ${GH}`);
+    const yaslar = v.map(r => r[0]);
+    const x0 = Math.min(...yaslar), x1 = Math.max(...yaslar);
+    const X = a => sol + ((a - x0) / (x1 - x0)) * (GW - sol - sag);
+    const y0 = -3, y1 = 3;
+    const Y = d => ust + ((y1 - d) / (y1 - y0)) * (GH - ust - alt);
+    for (let d = y0; d <= y1; d++) {
+      el("line", { x1: sol, x2: GW - sag, y1: Y(d), y2: Y(d), class: d === 0 ? "g-sifir" : "g-eksen" }, svg);
+      yazi(svg, sol - 6, Y(d) + 4, (d > 0 ? "+" : "") + d, "g-yazi", { "text-anchor": "end" });
+    }
+    for (let a = 20; a <= x1; a += 4) yazi(svg, X(a), GH - 10, a, "g-yazi", { "text-anchor": "middle" });
+    yazi(svg, GW - sag, GH - 10, "yaş", "g-yazi", { "text-anchor": "end" });
+    const yol = (i) => v.filter(r => r[i] != null).map((r, j) => `${j ? "L" : "M"}${X(r[0]).toFixed(1)},${Y(r[i]).toFixed(1)}`).join("");
+    el("path", { d: yol(1), class: "g-cizgi-court" }, svg);
+    el("path", { d: yol(2), class: "g-cizgi-accent" }, svg);
+    v.forEach(r => { if (r[1] != null) el("circle", { cx: X(r[0]), cy: Y(r[1]), r: 3, class: "g-court" }, svg); });
+    el("line", { x1: X(27), x2: X(27), y1: ust, y2: GH - alt, stroke: "var(--muted)", "stroke-width": 1, "stroke-dasharray": "2 3" }, svg);
+    yazi(svg, X(27) + 5, ust + 12, "tepe: 27", "g-yazi");
+  })();
+
+  /* ---- SHAP grafiği ---- */
+  (function () {
+    const v = VERI.shap;
+    const svg = document.getElementById("g-shap");
+    const GW = 480, sol = 112, sag = 46, satirH = 26, ust = 4;
+    const GH = ust + v.length * satirH + 4;
+    svg.setAttribute("viewBox", `0 0 ${GW} ${GH}`);
+    const max = 5;
+    const X = d => sol + (d / max) * (GW - sol - sag);
+    v.forEach((r, i) => {
+      const y = ust + i * satirH;
+      yazi(svg, sol - 10, y + 16, r[0], "g-yazi", { "text-anchor": "end" });
+      el("rect", { x: sol, y: y + 5, width: X(r[1]) - sol, height: 15, rx: 2, class: "g-court" }, svg);
+      yazi(svg, X(r[1]) + 5, y + 16, tr(r[1]), "g-yazi");
+    });
+  })();
+
+  /* ---- Hata tablosu ---- */
+  (function () {
+    const tab = document.getElementById("t-hata");
+    tab.innerHTML = "<thead><tr><th class='sol'>Oyuncu</th><th class='sol'>Sezon</th><th>Yaş</th><th>PTS (t)</th><th>Tahmin</th><th>Gerçek</th><th>Hata</th><th class='sol'>Neden</th></tr></thead>";
+    const tb = document.createElement("tbody");
+    VERI.hatalar.forEach(r => {
+      const s = document.createElement("tr");
+      const hata = r[4] - r[5];
+      s.innerHTML = `<td class="sol"></td><td class="sol num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${tr(r[3], 1)}</td>` +
+        `<td class="num">${tr(r[4], 1)}</td><td class="num">${tr(r[5], 1)}</td>` +
+        `<td class="num">${hata > 0 ? "+" : "−"}${tr(Math.abs(hata), 1)}</td><td class="acikla"></td>`;
+      s.children[0].textContent = r[0];
+      s.children[0].style.fontWeight = 600;
+      s.lastChild.textContent = r[6];
+      tb.appendChild(s);
+    });
+    tab.appendChild(tb);
+  })();
+})();
+</script>

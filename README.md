@@ -171,7 +171,8 @@ make kur && make hepsi
 ```
 
 - `make kur` sanal ortamı (`.venv`) kurar ve sabitlenmiş bağımlılıkları yükler.
-- `make hepsi` = `veri → eda → oznitelik → egit → test-degerlendir → yorumla → tahmin → pdf`.
+- `make hepsi` = `veri → eda → oznitelik → egit → test-degerlendir → yorumla → tahmin → pdf → site`.
+- `make kadro` güncel takım bilgisini nba_api'den çeker (ağ gerekir, günlük tarihli görüntü `data/raw/kadro_*.csv`); `make site` tahmin sitesini `site/index.html` olarak üretir. Takım bilgisi yalnızca gösterim içindir, modele girmez.
   `data/raw/` önbelleği depoda olduğundan API'ye gidilmez (veri toplama hariç birkaç dakika).
 - Testler: `make test` (birim, sentetik veri), `make test-veri`, `make test-tam`; lint: `make lint`.
 - **GNU make yoksa (ör. Windows):** aynı `Makefile`'ı çalıştıran sarmalayıcıyı kullanın —

@@ -19,8 +19,9 @@ import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
 
-from src.ayarlar import loglama_kur, yol_al  # noqa: E402
+from src.ayarlar import ayarlari_yukle, loglama_kur, yol_al  # noqa: E402
 from src.degerlendir import metrikleri_oku  # noqa: E402
+from src.kadro import guncel_takim_ekle, son_kadro  # noqa: E402
 
 LOG = logging.getLogger(__name__)
 
@@ -33,8 +34,10 @@ MODEL_ADLARI = {
     "random_forest": "RandomForest",
     "lightgbm": "LightGBM",
 }
-SUTUNLAR = ["#", "Oyuncu", "Takım", "Yaş", "2025-26 PTS", "Tahmin", "Alt (%10)", "Üst (%90)"]
-SUTUN_GENISLIK = [0.06, 0.32, 0.08, 0.07, 0.13, 0.11, 0.115, 0.115]
+SUTUNLAR = [
+    "#", "Oyuncu", "Takım (güncel)", "Yaş", "2025-26 PTS", "Tahmin", "Alt (%10)", "Üst (%90)",
+]
+SUTUN_GENISLIK = [0.06, 0.29, 0.14, 0.06, 0.12, 0.10, 0.115, 0.115]
 
 
 def pdf_yolu() -> Path:
@@ -47,12 +50,22 @@ def _sayi(x: float) -> str:
     return f"{x:.2f}".replace(".", ",")
 
 
+def takim_metni(r: Any) -> str:
+    """Güncel takımı yazar; değiştiyse "eski→yeni", kadroda yoksa "eski (yok)"."""
+    durum = r.get("KADRO_DURUMU", "bilinmiyor")
+    if durum == "degisti":
+        return f"{r['TAKIM']}→{r['GUNCEL_TAKIM']}"
+    if durum == "yok":
+        return f"{r['TAKIM']} (kadrosuz)"
+    return str(r["TAKIM"])
+
+
 def tablo_satirlari(tahmin: pd.DataFrame, bas: int, bit: int) -> list[list[str]]:
     """Tahmin tablosunun [bas, bit) aralığındaki satırlarını metin hücrelerine çevirir."""
     satirlar = []
     for i, r in tahmin.iloc[bas:bit].iterrows():
         satirlar.append([
-            str(i + 1), str(r["OYUNCU"]), str(r["TAKIM"]), str(int(r["YAS_2025_26"])),
+            str(i + 1), str(r["OYUNCU"]), takim_metni(r), str(int(r["YAS_2025_26"])),
             f"{r['PTS_2025_26']:.1f}".replace(".", ","), _sayi(r["TAHMIN"]),
             _sayi(r["ALT"]), _sayi(r["UST"]),
         ])
@@ -65,7 +78,9 @@ def _altbilgi(fig: plt.Figure, sayfa: int, toplam: int) -> None:
              ha="center", fontsize=8, color="#666666")
 
 
-def ozet_sayfasi(tahmin: pd.DataFrame, metrik: dict[str, Any], toplam: int) -> plt.Figure:
+def ozet_sayfasi(
+    tahmin: pd.DataFrame, metrik: dict[str, Any], toplam: int, kadro_notu: str = ""
+) -> plt.Figure:
     """Başlık, özet metni, model karşılaştırma tablosu ve ilk 20 aralık grafiğini çizer."""
     fig = plt.figure(figsize=A4)
     fig.text(0.5, 0.955, "2026-27 NBA Sezonu — Maç Başı Sayı Tahminleri",
@@ -79,6 +94,7 @@ def ozet_sayfasi(tahmin: pd.DataFrame, metrik: dict[str, Any], toplam: int) -> p
         f"(doğrulama MAE'sine göre seçildi). Aralık: LightGBM\nquantile ile %80 tahmin "
         f"aralığı (doğrulamada gerçek kapsama %{f'{kapsama * 100:.1f}'.replace('.', ',')}).\n"
         "Tahmin, oyuncunun 2026-27'de anlamlı süre alması (≥ 20 maç) koşuluna dayanır."
+        + (f"\n{kadro_notu}" if kadro_notu else "")
     )
     fig.text(0.07, 0.915, ozet, fontsize=9, va="top", linespacing=1.5)
 
@@ -111,8 +127,9 @@ def ozet_sayfasi(tahmin: pd.DataFrame, metrik: dict[str, Any], toplam: int) -> p
     ax.scatter(ilk["TAHMIN"], y, color="#1f3b6f", zorder=3, s=22, label="Tahmin")
     ax.scatter(ilk["PTS_2025_26"], y, color="#d95f02", marker="x", zorder=3, s=22,
                label="2025-26 PTS")
-    ax.set_yticks(list(y), [f"{o} ({tk})" for o, tk in zip(ilk["OYUNCU"], ilk["TAKIM"])],
-                  fontsize=8)
+    takim = ilk.get("GUNCEL_TAKIM", ilk["TAKIM"])
+    takim = takim.where(takim != "", ilk["TAKIM"])
+    ax.set_yticks(list(y), [f"{o} ({tk})" for o, tk in zip(ilk["OYUNCU"], takim)], fontsize=8)
     ax.set_xlabel("Maç başı sayı")
     ax.set_title("En yüksek tahmine sahip 20 oyuncu", fontsize=11, weight="bold")
     ax.grid(axis="x", alpha=0.3)
@@ -151,7 +168,9 @@ def tablo_sayfasi(
     return fig
 
 
-def pdf_olustur(tahmin: pd.DataFrame, metrik: dict[str, Any], yol: Path) -> int:
+def pdf_olustur(
+    tahmin: pd.DataFrame, metrik: dict[str, Any], yol: Path, kadro_notu: str = ""
+) -> int:
     """Tahmin PDF'ini yazar ve sayfa sayısını döndürür."""
     tablo_sayfa = -(-len(tahmin) // MAKS_SATIR)
     adet = -(-len(tahmin) // tablo_sayfa)
@@ -159,7 +178,7 @@ def pdf_olustur(tahmin: pd.DataFrame, metrik: dict[str, Any], yol: Path) -> int:
     # CreationDate yazılmaz: aynı girdiden bayt düzeyinde aynı PDF üretilir.
     with PdfPages(yol, metadata={"Title": "2026-27 NBA Sayı Tahminleri",
                                  "CreationDate": None}) as pdf:
-        fig = ozet_sayfasi(tahmin, metrik, toplam)
+        fig = ozet_sayfasi(tahmin, metrik, toplam, kadro_notu)
         pdf.savefig(fig)
         plt.close(fig)
         for k in range(tablo_sayfa):
@@ -172,9 +191,13 @@ def pdf_olustur(tahmin: pd.DataFrame, metrik: dict[str, Any], yol: Path) -> int:
 def main() -> None:
     """CSV ve metriklerden `reports/tahmin_2026_27.pdf` raporunu üretir."""
     tahmin = pd.read_csv(yol_al("raporlar") / "tahmin_2026_27.csv")
+    kadro = son_kadro(str(ayarlari_yukle()["kadro"]["sezon"]))
+    tahmin = guncel_takim_ekle(tahmin, kadro[0] if kadro else None)
+    kadro_notu = (f"Takımlar: NBA API {kadro[1].isoformat()} tarihli kadrolar; takım değişikliği "
+                  "tahmine dahil değildir." if kadro else "")
     tahmin = tahmin.sort_values("TAHMIN", ascending=False).reset_index(drop=True)
     yol = pdf_yolu()
-    sayfa = pdf_olustur(tahmin, metrikleri_oku(), yol)
+    sayfa = pdf_olustur(tahmin, metrikleri_oku(), yol, kadro_notu)
     LOG.info("PDF yazıldı: %s (%d sayfa, %d oyuncu)", yol, sayfa, len(tahmin))
 
 

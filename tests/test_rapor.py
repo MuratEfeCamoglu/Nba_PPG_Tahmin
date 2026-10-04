@@ -31,6 +31,7 @@ DOSYALAR = [
     "hata_analizi.md",
     "tahmin_2026_27.csv",
     "tahmin_2026_27.pdf",
+    "../site/index.html",
     "test_kullanildi.flag",
     "figures/yas_egrisi.png",
     "figures/ortalamaya_donus.png",
