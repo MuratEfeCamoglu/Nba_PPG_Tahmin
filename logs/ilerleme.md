@@ -17,3 +17,6 @@ Yapılan: bolme.py, baseline.py, degerlendir.py (koruma bayrağı), model.py (ı
 
 ## 2026-10-04 — Faz 5, döngü 1-2
 Yapılan: yorumla.py (SHAP, yaş kısmi bağımlılığı, hata tabloları, kısa sezon geriye testi, en büyük 10 hata), test_yorumla.py. Döngü 2: SHAP permütasyon → analitik doğrusal SHAP (5,5 dk → 12 sn), açıklama kuralı ve yanlılık notu · Kapılar: make yorumla ✅ · make test 55 passed · test-veri 13 passed · lint ✅ · K10 ✅ · makullük 4/4 ✅ · Sonraki: Faz 6.
+
+## 2026-10-04 — Faz 6, döngü 1
+Yapılan: tahmin.py (final yeniden eğitim, quantile aralık, doğrulamada kalibrasyon), app/streamlit_app.py (AppTest ile hatasız), README.md, test_tahmin.py, test_rapor.py · Kapılar: temiz durumdan `make hepsi` exit 0 (60 sn, çıktılar bayt düzeyinde aynı) · make test-tam 86 passed · make test 57 passed · make test-veri 13 passed · lint ✅ · `python -c "import app.streamlit_app"` exit 0 · README başlıkları ✅ · alt≤tahmin≤üst %99,8 ✅ · K9 ✅ (git status temiz, push yok) · PROJE TAMAMLANDI.

@@ -51,12 +51,12 @@ def main() -> None:
         goster = goster[goster["TAKIM"] == takim]
     if arama:
         goster = goster[goster["OYUNCU"].str.contains(arama, case=False, na=False)]
-    st.dataframe(goster, use_container_width=True, hide_index=True)
+    st.dataframe(goster, width="stretch", hide_index=True)
 
     st.subheader("İlk 20 oyuncu (tahmin ve aralık)")
     ilk = tahminler.head(20).set_index("OYUNCU")[["ALT", "TAHMIN", "UST"]]
     st.bar_chart(ilk["TAHMIN"])
-    st.dataframe(ilk, use_container_width=True)
+    st.dataframe(ilk, width="stretch")
 
     st.subheader("Model yorumlama")
     for dosya, baslik in [("shap_ozet.png", "SHAP özet"),

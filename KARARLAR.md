@@ -86,3 +86,18 @@ Sonuç (test, tek sefer): Ridge 2,402 · naif 2,568 · Marcel 2,565.
 Durum: Hata analizi hangi kümede; kısa sezonlar doğrulamada yok; SHAP yöntemi.
 Karar: (1) Hata analizi ve SHAP doğrulama kümesinde; test kümesi Faz 4 sonrası hiç kullanılmadı (yalnız `metrikler.json`'daki test MAE'si raporda anılır). (2) Kısa sezonlar (2011, 2019, 2020 → `config.kisa_sezonlar`) için seçilen yapılandırma 2005-2022'de ileriye dönük yeniden eğitildi (y yılı için yalnız ≤ y−1 satırları; test yılları dışarıda). (3) Ridge için SHAP analitik ve kesin hesaplanır: w·(z − E[z]) (bağımsız maskeleyici, eksiklik göstergeleri özgün özniteliğe eklenir; toplamsallık hatası 1e-14). Permütasyon açıklayıcısı 5,5 dk sürüyordu; ağaç modeller için TreeExplainer, diğerleri için permütasyon yedek yol olarak kaldı. (4) Yaş kısmi bağımlılığında AGE_KARE = AGE² tutarlı değiştirilir; "kısmi etki" = ortalama tahmin − ortalama PTS(t) (yaşa göre beklenen değişim), EDA delta eğrisiyle (yalnız eğitim yılları) karşılaştırılır. (5) En büyük hataların açıklamaları t+1 dakika/takım/GP bilgisini yalnızca açıklama için kullanır (öznitelik değil).
 Sonuç: Makullük ✅ (tahmin 1,43-33,29; ort. tahmin 11,74 / gerçek 11,25; ≤23 yaş pozitif, 31+ negatif). Sistematik yanlılık +0,49 raporlandı.
+
+## K-017 · Faz 6 · 2026-10-04
+Durum: Final model, aralık ve tahmin tablosu ayrıntıları.
+Karar: Seçilen tür ve parametreler (Ridge α=0,1) eğitim + doğrulama + test (7.740 satır) ile yeniden eğitildi (`models/final_model.joblib`; test değerlendirmesinde kullanılan yalnız-eğitim modeli `en_iyi_model.joblib` ayrı tutuldu). %80 aralık: LightGBM quantile α=0,1/0,9, parametreler doğrulamadaki en iyi LightGBM'den (num_leaves 15, lr 0,03, 232 iterasyon). Aralık zorla tahmini kapsayacak şekilde kırpılmadı; alt ≤ tahmin ≤ üst oranı 0,998 (DoD ≥ 0,95). Kalibrasyon: yalnız eğitimde eğitilen quantile modelleri doğrulamada %78,7 kapsama (hedef %80). Tahmin tablosu sütunları: PLAYER_ID, OYUNCU, TAKIM, YAS_2025_26, PTS_2025_26, TAHMIN, ALT, UST.
+Gerekçe: CLAUDE.md Faz 6; test verisini eğitime katmak değerlendirme değildir (test metrikleri Faz 4'te bir kez alınmıştı).
+
+## K-018 · Faz 6 · 2026-10-04
+Durum: "Temiz durumdan make hepsi" tanımı ve test seti bayrağı; README sayılarının tutarlılığı.
+Karar: Temiz durum = `data/raw/` ve `reports/test_kullanildi.flag` hariç tüm üretilen dosyalar (data/processed, models, reports/*.md/json/csv, figures) silinmiş hal. Bayrak bir koruma kaydıdır, çıktı değil; silinmesi korumayı anlamsızlaştırırdı. Temiz çalıştırmada `test-degerlendir` aynı modeli bulup "yeniden üretim" yaptı ve tüm çıktılar commit edilmiş sürümlerle bayt düzeyinde aynı çıktı (`git status` boş). README elle yazıldı; `tests/test_rapor.py` README'deki doğrulama/test MAE'lerinin ve ilk 20 tahminin `reports/` dosyalarıyla birebir eşleştiğini doğrular. Gerçek "temiz klon" testi proje klasörü dışında dosya oluşturmayı gerektirdiğinden (İskelet §7.6) yapılmadı; `make kur` Faz 0'da doğrulandı.
+Gerekçe: Agent.md §6 Faz 6 kapısı, §10.7 ve İskelet §7.5-7.6.
+
+## K-019 · Faz 6 · 2026-10-04
+Durum: Geçici deneme betikleri nereye yazıldı?
+Karar: Kök neden izolasyonu için küçük betikler (RF determinizmi, SHAP toplamsallığı) ve log çıktıları yalnızca oturuma özel geçici scratchpad dizinine yazıldı; proje verisi veya proje dosyası proje klasörü dışında oluşturulmadı/değiştirilmedi.
+Gerekçe: Proje klasörünü geçici dosyalarla kirletmemek; şeffaflık için kayda geçirildi.
