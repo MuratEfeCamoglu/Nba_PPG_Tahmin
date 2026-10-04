@@ -1,0 +1,12 @@
+{
+  "model": "ridge",
+  "parametreler": {
+    "alpha": 0.1
+  },
+  "dogrulama_mae": 2.244115456803044,
+  "lgbm_parametreler": {
+    "num_leaves": 15,
+    "learning_rate": 0.03,
+    "n_estimators": 232
+  }
+}

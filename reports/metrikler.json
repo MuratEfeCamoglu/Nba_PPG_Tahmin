@@ -1,0 +1,139 @@
+{
+  "dogrulama": {
+    "naif": {
+      "MAE": 2.3809712586719525,
+      "RMSE": 3.058925752477084,
+      "R2": 0.7960065862518413
+    },
+    "marcel": {
+      "MAE": 2.4710682898036387,
+      "RMSE": 3.1436045210592507,
+      "R2": 0.7845561587663686
+    },
+    "ridge": {
+      "MAE": 2.244115456803044,
+      "RMSE": 2.866174299479437,
+      "R2": 0.8209049967657548
+    },
+    "random_forest": {
+      "MAE": 2.2703873634037284,
+      "RMSE": 2.893176605933778,
+      "R2": 0.8175145832072294
+    },
+    "lightgbm": {
+      "MAE": 2.233262487843242,
+      "RMSE": 2.8600490413011594,
+      "R2": 0.8216696613145669
+    }
+  },
+  "secilen_model": "ridge",
+  "secilen_parametreler": {
+    "alpha": 0.1
+  },
+  "izgara": [
+    {
+      "model": "ridge",
+      "parametreler": {
+        "alpha": 0.1
+      },
+      "dogrulama_mae": 2.244115456803044
+    },
+    {
+      "model": "ridge",
+      "parametreler": {
+        "alpha": 1
+      },
+      "dogrulama_mae": 2.244623928654526
+    },
+    {
+      "model": "ridge",
+      "parametreler": {
+        "alpha": 10
+      },
+      "dogrulama_mae": 2.2525515503632185
+    },
+    {
+      "model": "ridge",
+      "parametreler": {
+        "alpha": 100
+      },
+      "dogrulama_mae": 2.2923550005848257
+    },
+    {
+      "model": "random_forest",
+      "parametreler": {
+        "n_estimators": 500,
+        "min_samples_leaf": 5
+      },
+      "dogrulama_mae": 2.281474555521061
+    },
+    {
+      "model": "random_forest",
+      "parametreler": {
+        "n_estimators": 500,
+        "min_samples_leaf": 20
+      },
+      "dogrulama_mae": 2.2703873634037284
+    },
+    {
+      "model": "lightgbm",
+      "parametreler": {
+        "num_leaves": 15,
+        "learning_rate": 0.03,
+        "n_estimators": 232
+      },
+      "dogrulama_mae": 2.233262487843242
+    },
+    {
+      "model": "lightgbm",
+      "parametreler": {
+        "num_leaves": 15,
+        "learning_rate": 0.1,
+        "n_estimators": 82
+      },
+      "dogrulama_mae": 2.2339139981492426
+    },
+    {
+      "model": "lightgbm",
+      "parametreler": {
+        "num_leaves": 31,
+        "learning_rate": 0.03,
+        "n_estimators": 189
+      },
+      "dogrulama_mae": 2.2573704615913504
+    },
+    {
+      "model": "lightgbm",
+      "parametreler": {
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "n_estimators": 60
+      },
+      "dogrulama_mae": 2.2578722283737416
+    },
+    {
+      "model": "lightgbm",
+      "parametreler": {
+        "num_leaves": 63,
+        "learning_rate": 0.03,
+        "n_estimators": 165
+      },
+      "dogrulama_mae": 2.283161508373265
+    },
+    {
+      "model": "lightgbm",
+      "parametreler": {
+        "num_leaves": 63,
+        "learning_rate": 0.1,
+        "n_estimators": 55
+      },
+      "dogrulama_mae": 2.293405946649188
+    }
+  ],
+  "kume_boyutlari": {
+    "egitim": 6066,
+    "dogrulama": 1009,
+    "test": 665,
+    "tahmin": 406
+  }
+}

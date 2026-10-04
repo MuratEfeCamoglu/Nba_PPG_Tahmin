@@ -1,6 +1,6 @@
 # DURUM
 Aktif faz: 4 — Baseline'lar, Bölme ve Modelleme
-Aktif adım: 4.1 bolme.py (başlanacak)
+Aktif adım: 4.6 make test-degerlendir (seçim commit edildi: ridge alpha=0.1; test henüz kullanılmadı)
 Döngü: 0/8 · Yeniden tasarım: 0/2 · Bu hata için deneme: 0/3
 ## Notlar
 - Kapılar `./make <hedef>` ile çalıştırılır (K-002). Python: .venv/Scripts/python.exe (3.12).

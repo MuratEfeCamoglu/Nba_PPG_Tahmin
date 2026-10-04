@@ -24,6 +24,7 @@ model:
     n_estimators: 3000
     early_stopping: 100
 aralik: {alt: 0.1, ust: 0.9}
+sinirlar: {tahmin_alt: 0, tahmin_ust: 40}   # CLAUDE.md §3.8 makullük sınırları
 yollar:
   ham: data/raw
   islenmis: data/processed
