@@ -6,13 +6,13 @@ Küme boyutları: eğitim 6066 · doğrulama 1009 · test 665 · tahmin 406 sat�
 
 | Model | Doğrulama MAE | Doğrulama RMSE | Doğrulama R² | Test MAE | Test RMSE | Test R² |
 |---|---|---|---|---|---|---|
-| Naif (PTS_t) | 2.381 | 3.059 | 0.796 | — | — | — |
-| Marcel (5-4-3 + yaş) | 2.471 | 3.144 | 0.785 | — | — | — |
-| Ridge ✅ | 2.244 | 2.866 | 0.821 | — | — | — |
+| Naif (PTS_t) | 2.381 | 3.059 | 0.796 | 2.568 | 3.251 | 0.755 |
+| Marcel (5-4-3 + yaş) | 2.471 | 3.144 | 0.785 | 2.565 | 3.268 | 0.752 |
+| Ridge ✅ | 2.244 | 2.866 | 0.821 | 2.402 | 3.059 | 0.783 |
 | RandomForest | 2.270 | 2.893 | 0.818 | — | — | — |
 | LightGBM | 2.233 | 2.860 | 0.822 | — | — | — |
 
-Test seti henüz kullanılmadı (`make test-degerlendir`).
+Test sütunları yalnızca seçilen model ve iki baseline için doldurulur; test seti bir kez, model seçimi bittikten sonra kullanılmıştır (`test_kullanildi.flag`).
 
 ## Hiperparametre ızgarası (doğrulama MAE)
 

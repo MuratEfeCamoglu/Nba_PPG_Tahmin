@@ -1,0 +1,7 @@
+{
+  "model": "ridge",
+  "parametreler": {
+    "alpha": 0.1
+  },
+  "olusturma": "2026-10-04T16:38:54"
+}

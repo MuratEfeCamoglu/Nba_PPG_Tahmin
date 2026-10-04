@@ -59,3 +59,25 @@ Gerekçe: CLAUDE.md §3.1-3.4. Sonuç: tepe yaş 27; r(PTS)=0.865, r(MIN)=0.758,
 Durum: Lag özniteliklerinde ardışıklık ve PTS_L2 tanımı; takım değişimi ölçütü.
 Karar: (1) Lag'ler `groupby.shift` yerine (PLAYER_ID, SEZON_YIL−k) anahtarıyla birleştirilir: PTS_L1 yalnızca t−1 sezonundan, PTS_L2 yalnızca t−2 sezonundan gelir (t−1 eksik olsa bile t−2 varsa kullanılır; Marcel mantığıyla tutarlı). (2) TAKIM_DEGISTI, varsa `TEAM_ID` ile karşılaştırılır (SEA→OKC, NJN→BKN gibi taşınmalar değişim sayılmaz), t−1 sezonu yoksa NaN. (3) `oznitelikler.csv` filtrelenmemiş tüm satırları içerir; GP/MIN ve hedef filtreleri `bolme`'de uygulanır. (4) Sızıntı testine ek olarak birden fazla kesme yılında aynı kontrol eklendi; sızdıran bir sütunun (`shift(-1)`) testi kırdığı geçici mutasyonla doğrulandı.
 Gerekçe: İskelet §4 ardışık sezon kontrolü; birleştirme tabanlı lag sezon boşluklarında yanlış değer üretemez.
+
+## K-012 · Faz 4 · 2026-10-04
+Durum: Bölme filtreleri ve değerlendirme kümesi tanımı.
+Karar: Tüm kümelerde t sezonunda GP ≥ 20 ve MIN ≥ 10; eğitim/doğrulama/test'te ek olarak HEDEF_PTS dolu ve t+1 sezonunda GP ≥ 20 (`HEDEF_GP`, yalnız filtre — öznitelik değil). t+1'de dakika filtresi uygulanmadı. Tahmin kümesi: 2025 sezonu, GP ≥ 20 ve MIN ≥ 10 (406 oyuncu).
+Gerekçe: CLAUDE.md §3.7 (t+1'de en az 20 maç) ve Faz 6 tanımı; config değerleri değiştirilmedi. Boyutlar: eğitim 6066, doğrulama 1009, test 665, tahmin 406.
+
+## K-013 · Faz 4 · 2026-10-04
+Durum: Model ayrıntıları (eksik değer, sınırlar, erken durdurma, seçim).
+Karar: Ridge/RF: sklearn Pipeline (medyan doldurma + eksiklik göstergesi, Ridge'de StandardScaler; yalnız eğitimde fit). LightGBM: NaN doğal, `deterministic=True`, erken durdurma doğrulama kümesinde l1 metriği (100 tur); bulunan en iyi iterasyon parametre olarak kaydedilir. Tüm tahminler `SinirliModel` sarmalayıcısında [0, 40] aralığına kırpılır (`config.sinirlar`, CLAUDE.md §3.8). Seçim doğrulama MAE'siyle; fark < 0,02 ise sadelik sırası Ridge > RF > LightGBM.
+Gerekçe: İskelet §8. Not: LightGBM'in erken durdurması doğrulama kümesini kullandığından doğrulama MAE'si LightGBM lehine hafif iyimserdir; buna rağmen Ridge eşitlik kuralıyla seçildi.
+Sonuç: Doğrulama MAE — naif 2,381 · Marcel 2,471 · Ridge(α=0,1) 2,244 · RF 2,270 · LightGBM 2,233. Seçilen: Ridge (LightGBM'den farkı 0,011 < 0,02).
+
+## K-014 · Faz 4 · 2026-10-04
+Durum: `test_model::test_ayni_seed_ile_deterministik` aralıklı başarısız (MAE'ler ~4e-16 farklı).
+Karar: Kök neden: RandomForest `n_jobs=-1` ile tahminde ağaç çıktıları iş parçacıklarında farklı sırayla toplanıyor. Eğitim paralel bırakıldı, eğitimden sonra tahminci `n_jobs=1`'e alındı (`_rf_tahmini_sabitle`). Test gevşetilmedi; 6 tekrarlı izole denemede fark kalmadı.
+Gerekçe: Test seti bayrağı model kimliğine bağlı; bit düzeyinde determinizm yeniden üretimi güvenceye alır.
+
+## K-015 · Faz 4 · 2026-10-04
+Durum: Test değerlendirmesinde hangi model örneği kullanılacak; Marcel neden naiften kötü?
+Karar: Test, doğrulamada seçilen ve yalnız eğitim kümesinde eğitilmiş modelle (yeniden eğitim yapmadan) bir kez yapıldı; model seçimi test öncesi commit edildi (2fd599b). Marcel spesifikasyona (ağırlıklı ort. + eğitimden yaş eğrisi) sadık uygulandı; ortalamaya dönüş için lig ortalamasına çekme bileşeni İskelet'te olmadığından eklenmedi.
+Gerekçe: Doğrulanan model = test edilen model. Bulgu: 5-4-3 ağırlıklı ortalama, yükselen oyuncuların son sezonunu geride bırakıyor ve yaş düzeltmesi PTS deltasından hesaplandığı için ağırlıklı ortalamaya uygulandığında eksik kalıyor; bu yüzden Marcel doğrulamada naiften kötü (2,471 > 2,381). Testte ikisi neredeyse eşit (2,565 / 2,568).
+Sonuç (test, tek sefer): Ridge 2,402 · naif 2,568 · Marcel 2,565.
