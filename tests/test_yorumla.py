@@ -5,7 +5,13 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.yorumla import en_buyuk_hatalar, hata_tablosu, kisa_sezon_tablosu, kismi_bagimlilik
+from src.yorumla import (
+    en_buyuk_hatalar,
+    en_isabetli_tahminler,
+    hata_tablosu,
+    kisa_sezon_tablosu,
+    kismi_bagimlilik,
+)
 
 
 class YasModeli:
@@ -59,3 +65,13 @@ def test_en_buyuk_hatalar_sirali_ve_aciklamali() -> None:
     assert buyuk["PLAYER_NAME"].tolist() == ["C", "A"]
     assert all(isinstance(a, str) and a.endswith(".") for a in buyuk["ACIKLAMA"])
     assert "30 maç" in buyuk.iloc[0]["ACIKLAMA"]
+
+
+def test_en_isabetli_tahminler_yalniz_degisenlerden_secer() -> None:
+    df = _df().assign(PTS_AGIRLIKLI=[6.0, 12.0, 17.0, 8.0])
+    isabetli = en_isabetli_tahminler(df, n=5, min_degisim=3.0)
+    # Yalnızca naif hatası ≥ 3 olan A (5→9, model hatası 3) ve C (20→15, model hatası 4).
+    assert isabetli["PLAYER_NAME"].tolist() == ["A", "C"]
+    assert "artışı" in isabetli.iloc[0]["ACIKLAMA"]
+    assert "düşüşü" in isabetli.iloc[1]["ACIKLAMA"]
+    assert "31 yaşında" in isabetli.iloc[1]["ACIKLAMA"]

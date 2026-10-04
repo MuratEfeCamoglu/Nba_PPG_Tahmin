@@ -166,5 +166,11 @@
     "ort_genislik": 7.066229131993106,
     "alt_alti_oran": 0.11694747274529237,
     "ust_ustu_oran": 0.09613478691774034
+  },
+  "isabet_dogrulama": {
+    "n_degisen": 315.0,
+    "n_bir_alti": 12.0,
+    "naifi_yenen_oran": 0.7206349206349206,
+    "genel_bir_alti_oran": 0.2874132804757185
   }
 }

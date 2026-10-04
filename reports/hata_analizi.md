@@ -126,3 +126,20 @@ Doğrulama kümesi yalnızca 2020-21'i (72 maç) içerdiği için kısa sezonlar
 | Montrezl Harrell | 2021-22 | 28 | 13.1 | 13.5 | 5.6 | +7.9 | t+1'de beklenenden az sayı attı: dakikası 23.1 → 11.9 düştü (rol kaybı/sakatlık), takım değiştirdi (CHA → PHI). |
 
 **Genel yorum:** En büyük hatalar, modelin t anında göremediği rol değişikliklerinden (dakika artışı/azalışı, takım değişikliği) ve sakatlıklardan kaynaklanıyor. Bunlar t+1 bilgisi olduğundan öznitelik yapılamaz; modelin sınırıdır.
+
+## En isabetli 10 tahmin (doğrulama)
+
+Seçim: naif tahminin (PTS(t)) en az 3 sayı yanıldığı, yani sayısı gerçekten değişen 315 oyuncu-sezon arasından modelin mutlak hatası en küçük 10 tanesi. Bu grupta model 12 oyuncuyu 1 sayıdan az hatayla bildi ve 72.1%'inde naiften daha az yanıldı. Tüm doğrulama kümesinde hatası 1 sayının altında kalan tahminlerin oranı 28.7%. Bunlar seçilmiş en iyi örneklerdir; genel başarı için MAE'ye bakın.
+
+| Oyuncu | Sezon (t) | Yaş | PTS(t) | Tahmin | Gerçek (t+1) | Hata | Naif hata | Açıklama |
+|---|---|---|---|---|---|---|---|---|
+| DeMar DeRozan | 2021-22 | 32 | 27.9 | 24.4 | 24.5 | -0.1 | +3.4 | Gerçek 3.4 sayılık düşüşü öngördü: 32 yaşında yaşa bağlı düşüş, son sezonu (27.9) ağırlıklı ortalamasının (24.4) üstündeydi (ortalamaya dönüş). |
+| LeBron James | 2022-23 | 38 | 28.9 | 25.8 | 25.7 | +0.1 | +3.2 | Gerçek 3.2 sayılık düşüşü öngördü: 38 yaşında yaşa bağlı düşüş. |
+| Brook Lopez | 2022-23 | 35 | 15.9 | 12.8 | 12.5 | +0.3 | +3.4 | Gerçek 3.4 sayılık düşüşü öngördü: 35 yaşında yaşa bağlı düşüş, son sezonu (15.9) ağırlıklı ortalamasının (13.8) üstündeydi (ortalamaya dönüş). |
+| Jerami Grant | 2020-21 | 27 | 22.3 | 18.9 | 19.2 | -0.3 | +3.1 | Gerçek 3.1 sayılık düşüşü öngördü: son sezonu (22.3) ağırlıklı ortalamasının (16.7) üstündeydi (ortalamaya dönüş). |
+| Gordon Hayward | 2020-21 | 31 | 19.6 | 16.4 | 15.9 | +0.5 | +3.7 | Gerçek 3.7 sayılık düşüşü öngördü: 31 yaşında yaşa bağlı düşüş, son sezonu (19.6) ağırlıklı ortalamasının (16.9) üstündeydi (ortalamaya dönüş). |
+| Isaac Okoro | 2022-23 | 22 | 6.4 | 8.9 | 9.4 | -0.5 | -3.0 | Gerçek 3.0 sayılık artışı öngördü: 22 yaşında gelişim payı, son sezonu ağırlıklı ortalamasının (8.0) altındaydı (toparlanma). |
+| Naz Reid | 2021-22 | 22 | 8.3 | 10.8 | 11.5 | -0.7 | -3.2 | Gerçek 3.2 sayılık artışı öngördü: 22 yaşında gelişim payı. |
+| Jordan Clarkson | 2022-23 | 31 | 20.8 | 17.8 | 17.1 | +0.7 | +3.7 | Gerçek 3.7 sayılık düşüşü öngördü: 31 yaşında yaşa bağlı düşüş, son sezonu (20.8) ağırlıklı ortalamasının (18.6) üstündeydi (ortalamaya dönüş). |
+| Moses Moody | 2022-23 | 21 | 4.8 | 7.3 | 8.1 | -0.8 | -3.3 | Gerçek 3.3 sayılık artışı öngördü: 21 yaşında gelişim payı. |
+| Christian Wood | 2020-21 | 25 | 21.0 | 18.7 | 17.9 | +0.8 | +3.1 | Gerçek 3.1 sayılık düşüşü öngördü: son sezonu (21.0) ağırlıklı ortalamasının (15.2) üstündeydi (ortalamaya dönüş). |

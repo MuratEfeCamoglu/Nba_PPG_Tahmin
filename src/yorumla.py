@@ -26,7 +26,12 @@ from sklearn.pipeline import Pipeline  # noqa: E402
 
 from src.ayarlar import ayarlari_yukle, loglama_kur, yol_al  # noqa: E402
 from src.bolme import zamansal_bol  # noqa: E402
-from src.degerlendir import MODEL_ETIKETLERI, metrikler, metrikleri_oku  # noqa: E402
+from src.degerlendir import (  # noqa: E402
+    MODEL_ETIKETLERI,
+    metrikler,
+    metrikleri_oku,
+    metrikleri_yaz,
+)
 from src.eda import DPI, ardisik_ciftler, grafik_stili, yas_egrisi_delta  # noqa: E402
 from src.hedef import oyuncu_sezon_yolu  # noqa: E402
 from src.model import yeniden_egit  # noqa: E402
@@ -228,6 +233,48 @@ def en_buyuk_hatalar(df: pd.DataFrame, n: int = 10) -> pd.DataFrame:
     return d
 
 
+def isabet_aciklamasi(r: pd.Series) -> str:
+    """İsabetli bir tahmin için modelin değişimi t anındaki hangi bilgiden öngördüğünü yazar.
+
+    Yalnızca t ve öncesine ait sütunlar (yaş, ağırlıklı ortalama, GP) kullanılır.
+    """
+    degisim = r["HEDEF_PTS"] - r["PTS"]
+    nedenler = []
+    if r["AGE"] <= 23 and degisim > 0:
+        nedenler.append(f"{int(r['AGE'])} yaşında gelişim payı")
+    if r["AGE"] >= 31 and degisim < 0:
+        nedenler.append(f"{int(r['AGE'])} yaşında yaşa bağlı düşüş")
+    ort = r.get("PTS_AGIRLIKLI")
+    if pd.notna(ort) and degisim < 0 and r["PTS"] - ort >= 1.5:
+        nedenler.append(f"son sezonu ({r['PTS']:.1f}) ağırlıklı ortalamasının ({ort:.1f}) "
+                        "üstündeydi (ortalamaya dönüş)")
+    if pd.notna(ort) and degisim > 0 and ort - r["PTS"] >= 1.5:
+        nedenler.append(f"son sezonu ağırlıklı ortalamasının ({ort:.1f}) altındaydı (toparlanma)")
+    if r["GP"] < 45 and degisim > 0:
+        nedenler.append(f"yalnızca {int(r['GP'])} maçlık sezon sonrası toparlanma")
+    if not nedenler:
+        nedenler.append("dakika ve 36 dakika başına sayı geçmişi")
+    yon = "artışı" if degisim > 0 else "düşüşü"
+    return (f"Gerçek {abs(degisim):.1f} sayılık {yon} öngördü: "
+            + ", ".join(nedenler) + ".")
+
+
+def en_isabetli_tahminler(
+    df: pd.DataFrame, n: int = 10, min_degisim: float = 3.0
+) -> pd.DataFrame:
+    """Naif tahminin en az `min_degisim` sayı yanıldığı satırlardan en isabetli `n` tanesi.
+
+    Yalnızca PTS'si değişmeyen oyuncuları göstermemek için "gerçekten değişim olan" sezonlar
+    seçilir; sıralama modelin mutlak hatasına göre artandır.
+    """
+    d = df.assign(MUTLAK_HATA=(df["TAHMIN"] - df["HEDEF_PTS"]).abs(),
+                  NAIF_HATA=(df["PTS"] - df["HEDEF_PTS"]).abs())
+    d = d[d["NAIF_HATA"] >= min_degisim]
+    d = d.sort_values(["MUTLAK_HATA", "NAIF_HATA"], ascending=[True, False]).head(n).copy()
+    d["ACIKLAMA"] = d.apply(isabet_aciklamasi, axis=1)
+    return d
+
+
 def _sonraki_bilgiler(df: pd.DataFrame, oyuncu_sezon: pd.DataFrame) -> pd.DataFrame:
     """Açıklama için (yalnız analiz) t+1 dakikası ve takımını ekler — öznitelik değildir."""
     sonraki = oyuncu_sezon[["PLAYER_ID", "SEZON_YIL", "MIN", "TEAM_ABBREVIATION"]].copy()
@@ -277,6 +324,7 @@ def rapor_yaz(
     yol: Path, secim: dict[str, Any], dog_metrik: dict[str, float], kontrol: dict[str, Any],
     kismi: pd.DataFrame, eda_egri: pd.DataFrame, onem: pd.Series, hata_md: str,
     kisa_md: str, ileri_mae: float, buyuk: pd.DataFrame, metrik_veri: dict[str, Any],
+    isabetli: pd.DataFrame | None = None, isabet_ozet: dict[str, float] | None = None,
 ) -> None:
     """`reports/hata_analizi.md` dosyasını yazar."""
     def tik(b: bool) -> str:
@@ -373,6 +421,29 @@ def rapor_yaz(
         "t+1 bilgisi olduğundan öznitelik yapılamaz; modelin sınırıdır.",
         "",
     ]
+    if isabetli is not None and isabet_ozet is not None:
+        satirlar += [
+            "## En isabetli 10 tahmin (doğrulama)",
+            "",
+            f"Seçim: naif tahminin (PTS(t)) en az 3 sayı yanıldığı, yani sayısı gerçekten "
+            f"değişen {int(isabet_ozet['n_degisen'])} oyuncu-sezon arasından modelin mutlak "
+            f"hatası en küçük 10 tanesi. Bu grupta model {int(isabet_ozet['n_bir_alti'])} "
+            f"oyuncuyu 1 sayıdan az hatayla bildi ve {isabet_ozet['naifi_yenen_oran']:.1%}'inde "
+            f"naiften daha az yanıldı. Tüm doğrulama kümesinde hatası 1 sayının altında kalan "
+            f"tahminlerin oranı {isabet_ozet['genel_bir_alti_oran']:.1%}. Bunlar seçilmiş en iyi "
+            "örneklerdir; genel başarı için MAE'ye bakın.",
+            "",
+            "| Oyuncu | Sezon (t) | Yaş | PTS(t) | Tahmin | Gerçek (t+1) | Hata | Naif hata "
+            "| Açıklama |",
+            "|---|---|---|---|---|---|---|---|---|",
+        ]
+        for _, r in isabetli.iterrows():
+            satirlar.append(
+                f"| {r.PLAYER_NAME} | {r.SEZON_YIL}-{str(r.SEZON_YIL + 1)[-2:]} | {int(r.AGE)} | "
+                f"{r.PTS:.1f} | {r.TAHMIN:.1f} | {r.HEDEF_PTS:.1f} | "
+                f"{r.TAHMIN - r.HEDEF_PTS:+.1f} | {r.PTS - r.HEDEF_PTS:+.1f} | {r.ACIKLAMA} |"
+            )
+        satirlar.append("")
     yol.write_text("\n".join(satirlar), encoding="utf-8")
 
 
@@ -407,8 +478,22 @@ def main() -> None:
     ileri_mae = metrikler(ileri["HEDEF_PTS"], ileri["TAHMIN"])["MAE"]
     kisa_md = kisa_sezon_tablosu(ileri, ayar["kisa_sezonlar"])
     buyuk = en_buyuk_hatalar(_sonraki_bilgiler(dogrulama, oyuncu_sezon))
+    isabetli = en_isabetli_tahminler(dogrulama)
+    hata = (dogrulama["TAHMIN"] - dogrulama["HEDEF_PTS"]).abs()
+    naif = (dogrulama["PTS"] - dogrulama["HEDEF_PTS"]).abs()
+    degisen = naif >= 3.0
+    isabet_ozet = {
+        "n_degisen": float(degisen.sum()),
+        "n_bir_alti": float((hata[degisen] < 1.0).sum()),
+        "naifi_yenen_oran": float((hata[degisen] < naif[degisen]).mean()),
+        "genel_bir_alti_oran": float((hata < 1.0).mean()),
+    }
+    metrik_veri = metrikleri_oku()
+    metrik_veri["isabet_dogrulama"] = isabet_ozet
+    metrikleri_yaz(metrik_veri)
     rapor_yaz(yol_al("raporlar") / "hata_analizi.md", secim, dog_metrik, kontrol, kismi,
-              eda_egri, onem, hata_md, kisa_md, ileri_mae, buyuk, metrikleri_oku())
+              eda_egri, onem, hata_md, kisa_md, ileri_mae, buyuk, metrik_veri,
+              isabetli, isabet_ozet)
     LOG.info("Makullük: %s", kontrol)
     if not (kontrol["aralik_icinde"] and kontrol["ort_sapma_tamam"]):
         raise RuntimeError(f"Makullük sınırı ihlali: {kontrol}")

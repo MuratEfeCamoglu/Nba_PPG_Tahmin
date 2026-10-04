@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -66,7 +67,8 @@ def _sayi_ya_da_bos(x: str) -> float | None:
 
 
 def _aciklama_sadelestir(metin: str) -> str:
-    """Hata açıklamalarındaki t / t+1 gösterimini okur dostu ifadelere çevirir."""
+    """Açıklamalardaki t / t+1 gösterimini sadeleştirir, ondalık noktayı virgül yapar."""
+    metin = re.sub(r"(\d)\.(\d)", r"\1,\2", metin)
     return (metin.replace("t+1'de beklenenden", "Ertesi sezon beklenenden")
             .replace(", t+1'de yalnızca", ", ertesi sezon yalnızca")
             .replace(": t sezonunda yalnızca", ": o sezon yalnızca")
@@ -100,8 +102,11 @@ def site_verisi(tahmin: pd.DataFrame, metrik: dict[str, Any], hata_md: str) -> d
     hatalar = [[r[0], r[1], int(r[2]), float(r[3]), float(r[4]), float(r[5]),
                 _aciklama_sadelestir(r[7])]
                for r in md_tablo(hata_md, "## En büyük 10 hata")]
+    isabetler = [[r[0], r[1], int(r[2]), float(r[3]), float(r[4]), float(r[5]),
+                  _aciklama_sadelestir(r[8])]
+                 for r in md_tablo(hata_md, "## En isabetli 10 tahmin")]
     return {"tahmin": satirlar, "modeller": modeller, "yas": yas, "shap": shap,
-            "hatalar": hatalar}
+            "hatalar": hatalar, "isabetler": isabetler}
 
 
 def site_olustur() -> Path:
@@ -125,6 +130,7 @@ def site_olustur() -> Path:
     son_yil = int(ayar["bolme"]["tahmin_yil"])
     naif, ridge = metrik["test"]["naif"]["MAE"], metrik["test"][metrik["secilen_model"]]["MAE"]
     kb = metrik["kume_boyutlari"]
+    isabet = metrik["isabet_dogrulama"]
     durum = tahmin["KADRO_DURUMU"].value_counts()
     degerler = {
         "__OYUNCU__": str(len(tahmin)),
@@ -140,6 +146,11 @@ def site_olustur() -> Path:
         "__KADRO_TARIH__": kadro_tarih,
         "__N_DEGISTI__": str(int(durum.get("degisti", 0))),
         "__N_YOK__": str(int(durum.get("yok", 0))),
+        "__N_DEGISEN__": str(int(isabet["n_degisen"])),
+        "__N_BIR_ALTI__": str(int(isabet["n_bir_alti"])),
+        "__NAIFI_YENEN__": _virgul(isabet["naifi_yenen_oran"] * 100, 1),
+        "__GENEL_BIR_ALTI__": _virgul(isabet["genel_bir_alti_oran"] * 100, 1),
+        "__DOG_MAE__": _virgul(metrik["dogrulama"][metrik["secilen_model"]]["MAE"], 2),
         "__VERI__": json.dumps(veri, ensure_ascii=False),
     }
     html = (SITE_DIZIN / "sablon.html").read_text(encoding="utf-8")
