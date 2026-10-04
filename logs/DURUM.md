@@ -1,6 +1,6 @@
 # DURUM
 Aktif faz: 6 — 2026-27 Tahmini ve Sunum
-Aktif adım: 6.1 tahmin.py (başlanacak)
+Aktif adım: 6.5 temiz durumdan make hepsi (6.1-6.4 tamam, commit edildi)
 Döngü: 0/8 · Yeniden tasarım: 0/2 · Bu hata için deneme: 0/3
 ## Notlar
 - Kapılar `./make <hedef>` ile çalıştırılır (K-002). Python: .venv/Scripts/python.exe (3.12).

@@ -152,5 +152,19 @@
       "RMSE": 3.267528953313882,
       "R2": 0.7521133746342341
     }
+  },
+  "tahmin_2026_27": {
+    "oyuncu_sayisi": 406,
+    "egitim_satiri": 7740,
+    "alt_tahmin_ust_tutarli_oran": 0.9975369458128078,
+    "ort_tahmin": 11.03960591133005,
+    "ort_aralik_genisligi": 7.101847290640395
+  },
+  "aralik_dogrulama": {
+    "hedef_kapsama": 0.8,
+    "kapsama": 0.7869177403369673,
+    "ort_genislik": 7.066229131993106,
+    "alt_alti_oran": 0.11694747274529237,
+    "ust_ustu_oran": 0.09613478691774034
   }
 }
