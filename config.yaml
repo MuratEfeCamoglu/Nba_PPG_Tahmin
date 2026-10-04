@@ -31,3 +31,4 @@ yollar:
   modeller: models
   raporlar: reports
   sekiller: reports/figures
+kisa_sezonlar: [2011, 2019, 2020]   # 2011-12 lokavt, 2019-20 pandemi, 2020-21 72 maç (CLAUDE.md §3.5)

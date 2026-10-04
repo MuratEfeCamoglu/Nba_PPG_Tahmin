@@ -14,3 +14,6 @@ Yapılan: oznitelik.py (26 öznitelik), test_oznitelik.py (7), test_sizinti.py (
 
 ## 2026-10-04 — Faz 4, döngü 1-2
 Yapılan: bolme.py, baseline.py, degerlendir.py (koruma bayrağı), model.py (ızgara, seçim, quantile, yeniden_egit); testler test_bolme/test_baseline/test_koruma/test_model. Döngü 2: RF paralel tahmin determinizmi düzeltildi (K-014). Seçim test öncesi commit edildi; test seti bir kez kullanıldı · Kapılar: make egit ✅ · make test 51 passed (2 kez) · make test-veri 13 passed · lint ✅ · K6 ✅ · K7 ✅ (Ridge 2,244 < naif 2,381 < Marcel 2,471) · K8 ✅ (bayrak: ridge α=0,1) · alarm yok · Sonraki: Faz 5.
+
+## 2026-10-04 — Faz 5, döngü 1-2
+Yapılan: yorumla.py (SHAP, yaş kısmi bağımlılığı, hata tabloları, kısa sezon geriye testi, en büyük 10 hata), test_yorumla.py. Döngü 2: SHAP permütasyon → analitik doğrusal SHAP (5,5 dk → 12 sn), açıklama kuralı ve yanlılık notu · Kapılar: make yorumla ✅ · make test 55 passed · test-veri 13 passed · lint ✅ · K10 ✅ · makullük 4/4 ✅ · Sonraki: Faz 6.
