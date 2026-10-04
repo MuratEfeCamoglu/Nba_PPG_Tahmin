@@ -101,3 +101,9 @@ Gerekçe: Agent.md §6 Faz 6 kapısı, §10.7 ve İskelet §7.5-7.6.
 Durum: Geçici deneme betikleri nereye yazıldı?
 Karar: Kök neden izolasyonu için küçük betikler (RF determinizmi, SHAP toplamsallığı) ve log çıktıları yalnızca oturuma özel geçici scratchpad dizinine yazıldı; proje verisi veya proje dosyası proje klasörü dışında oluşturulmadı/değiştirilmedi.
 Gerekçe: Proje klasörünü geçici dosyalarla kirletmemek; şeffaflık için kayda geçirildi.
+
+## K-020 · Faz 6 (ek) · 2026-10-04
+Durum: Kullanıcı 2026-27 tahminlerinin PDF olarak sunulmasını istedi.
+Karar: `src/pdf_rapor.py` + `make pdf` hedefi (`hepsi` zincirinin sonuna eklendi) → `reports/tahmin_2026_27.pdf`. Sayfa 1: özet, model karşılaştırması (doğrulama/test MAE), ilk 20 oyuncunun %80 aralık grafiği; sonraki 10 sayfa: 406 oyuncunun tamamı tahmine göre sıralı tablo. PDF yalnızca mevcut `reports/` çıktılarını okur; model veya test setiyle yeni bir işlem yapılmaz. `test_rapor.py` dosya listesine eklendi.
+Gerekçe: Yeni paket gerekmesin diye matplotlib `PdfPages` kullanıldı (requirements.txt değişmedi). `CreationDate` yazılmıyor; aynı girdiden bayt düzeyinde aynı PDF üretiliyor (iki çalıştırmada md5 aynı), böylece temiz `make hepsi` tekrar üretilebilirliği korunuyor.
+Alternatifler: reportlab (reddedildi: yeni bağımlılık gerektirirdi).

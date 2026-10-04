@@ -30,6 +30,7 @@ DOSYALAR = [
     "model_karsilastirma.md",
     "hata_analizi.md",
     "tahmin_2026_27.csv",
+    "tahmin_2026_27.pdf",
     "test_kullanildi.flag",
     "figures/yas_egrisi.png",
     "figures/ortalamaya_donus.png",

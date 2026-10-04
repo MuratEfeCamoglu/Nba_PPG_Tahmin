@@ -117,7 +117,8 @@ Ayrıntılar: [`reports/hata_analizi.md`](reports/hata_analizi.md).
 ## 2026-27 Tahminleri
 
 Model eğitim + doğrulama + test verisinin tamamıyla (7.740 satır) yeniden eğitildi. İlk 20
-oyuncu (tam liste: [`reports/tahmin_2026_27.csv`](reports/tahmin_2026_27.csv)):
+oyuncu (tam liste: [`reports/tahmin_2026_27.csv`](reports/tahmin_2026_27.csv); PDF sunumu:
+[`reports/tahmin_2026_27.pdf`](reports/tahmin_2026_27.pdf)):
 
 | # | Oyuncu | Takım | Yaş (25-26) | PTS 2025-26 | Tahmin 2026-27 | %80 aralık |
 |---|---|---|---|---|---|---|
@@ -170,7 +171,7 @@ make kur && make hepsi
 ```
 
 - `make kur` sanal ortamı (`.venv`) kurar ve sabitlenmiş bağımlılıkları yükler.
-- `make hepsi` = `veri → eda → oznitelik → egit → test-degerlendir → yorumla → tahmin`.
+- `make hepsi` = `veri → eda → oznitelik → egit → test-degerlendir → yorumla → tahmin → pdf`.
   `data/raw/` önbelleği depoda olduğundan API'ye gidilmez (veri toplama hariç birkaç dakika).
 - Testler: `make test` (birim, sentetik veri), `make test-veri`, `make test-tam`; lint: `make lint`.
 - **GNU make yoksa (ör. Windows):** aynı `Makefile`'ı çalıştıran sarmalayıcıyı kullanın —
