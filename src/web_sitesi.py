@@ -147,6 +147,13 @@ def site_olustur() -> Path:
         if yer_tutucu not in html:
             raise ValueError(f"Şablonda yer tutucu yok: {yer_tutucu}")
         html = html.replace(yer_tutucu, deger)
+    # Tarayıcıda doğrudan açılabilsin diye tam belge iskeleti (charset olmadan Türkçe bozulur).
+    bas, govde = html.split("</style>", 1)
+    html = (
+        '<!doctype html>\n<html lang="tr">\n<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+        f"{bas}</style>\n</head>\n<body>{govde}\n</body>\n</html>\n"
+    )
     yol = site_yolu()
     yol.write_text(html, encoding="utf-8", newline="\n")
     LOG.info("Site yazıldı: %s (%d oyuncu, kadro: %s)", yol, len(tahmin), kadro_tarih)
